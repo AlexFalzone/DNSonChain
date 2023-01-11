@@ -22,7 +22,7 @@ type JSONRPCResponse struct {
 	ID      int         `json:"id"`
 }
 
-func MakeHTTPRequest(request JSONRPCRequest, externalClient string) (JSONRPCResponse, error) {
+func MakeHTTPRequest(request JSONRPCRequest, hostname string, externalClient string) (interface{}, error) {
 	// Crea un client HTTP
 	client := &http.Client{}
 
@@ -61,5 +61,5 @@ func MakeHTTPRequest(request JSONRPCRequest, externalClient string) (JSONRPCResp
 		return JSONRPCResponse{}, err
 	}
 
-	return response, nil
+	return response.Result, nil
 }
