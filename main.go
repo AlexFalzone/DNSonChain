@@ -3,34 +3,37 @@ package main
 import (
 	"fmt"
 	"net"
-	"os"
 
-	"example.com/packages/dns"
-	"example.com/packages/request"
+	"test/dns"
+	"test/request"
 )
 
 func main() {
-
-	requestJSON := request.JSONRPCRequest{
+	JSONRPCRequest := request.JSONRPCRequest{
 		JSONRPC: "2.0",
-		Method:  "eth_getBlockByNumber",
-		Params:  []interface{}{"latest", true},
+		Method:  "web3_clientVersion",
+		Params:  []interface{}{},
 		ID:      1,
 	}
 
-	// Apre una connessione sulla porta 53
+	// Crea un nuovo conn UDP sulla porta 53
 	conn, err := net.ListenPacket("udp", ":53")
 	if err != nil {
-		fmt.Println("Errore durante l'apertura della connessione:", err)
-		os.Exit(1)
+		fmt.Println("Error listening on DNS port:", err)
+		return
 	}
-	fmt.Print("ascolto sulla porta 53")
 	defer conn.Close()
 
 	for {
-		// Ascolta le richieste DNS in arrivo
-		dns.HandleRequest(conn)
+		check := int8(0)
+		hostname, check := dns.HandleRequest(conn)
 
-		request.MakeHTTPRequest(requestJSON, "http://localhost")
+		if check == 1 {
+			response, err := request.MakeHTTPRequest(JSONRPCRequest, hostname, "http://localhost")
+
+			if err == nil {
+				fmt.Println(response)
+			}
+		}
 	}
 }
