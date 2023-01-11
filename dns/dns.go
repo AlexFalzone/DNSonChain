@@ -3,40 +3,87 @@ package dns
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/miekg/dns"
 )
 
-func HandleRequest(conn net.PacketConn) {
-	// Alloca un buffer di dimensione massima per i pacchetti DNS
-	buf := make([]byte, 65536)
+const (
+	dnsServer = "1.1.1.1:53"
+)
 
-	// Legge i dati dalla connessione
-	n, _, err := conn.ReadFrom(buf)
+/*
+	Leggenda variabile ex:
+
+	1 = tipo A, sito .somet
+	2 = tipo A, sito non .somet
+	3 = tipo non A
+*/
+
+func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
+	// Buffer per leggere la richiesta DNS
+	buf := make([]byte, 1024)
+
+	// Legge la richiesta dal conn
+	n, addr, err := conn.ReadFrom(buf)
 	if err != nil {
-		fmt.Println("Errore durante la lettura dei dati:", err)
+		fmt.Println("Error reading from connection:", err)
 		return
 	}
 
-	// Esegue il parsing del pacchetto DNS
+	// Crea un messaggio DNS dal buffer
 	msg := &dns.Msg{}
-	err = msg.Unpack(buf[:n])
-	if err != nil {
-		fmt.Println("Errore durante il parsing del pacchetto DNS:", err)
-		return
+	if err := msg.Unpack(buf[:n]); err != nil {
+		fmt.Println("Error unpackaging DNS message:", err)
+		return hostname, 3
 	}
 
 	// Verifica se la richiesta è di tipo A
-	if msg.Opcode != dns.OpcodeQuery || msg.Rcode != dns.RcodeSuccess || len(msg.Question) != 1 {
-		fmt.Println("Richiesta DNS non valida")
-		return
-	}
-	question := msg.Question[0]
-	if question.Qtype != dns.TypeA {
-		fmt.Println("Richiesta DNS non di tipo A")
+	if len(msg.Question) == 0 || msg.Question[0].Qtype != dns.TypeA {
+		// inoltra la richiesta al server DNS cloudflare
+		fwd, err := dns.Exchange(msg, dnsServer)
+		if err != nil {
+			fmt.Println("Error forwarding DNS request:", err)
+			return
+		}
+		// Scrive la risposta sul conn
+		packageBytes, _ := fwd.Pack()
+		_, err = conn.WriteTo(packageBytes, addr)
+		if err != nil {
+			fmt.Println("Error writing DNS response:", err)
+			return
+		}
 		return
 	}
 
-	// Stampa il nome dell'URL
-	fmt.Println("Nome dell'URL:", question.Name)
+	// Estrae il nome dell'host dalla richiesta
+	hostnameFromDNS := msg.Question[0].Name
+
+	hostnameFromDNS = strings.TrimSuffix(hostnameFromDNS, ".")
+
+	//se la richiesta NON ha un suffisso .bit allora inoltra la richiesta al server DNS cloudflare
+	if !(strings.HasSuffix(hostnameFromDNS, ".somet")) {
+		fmt.Println("Richiesta di tipo A da mandare a DNS:", hostnameFromDNS)
+
+		// inoltra la richiesta al server DNS cloudflare
+		fwd, err := dns.Exchange(msg, dnsServer)
+		if err != nil {
+			fmt.Println("Error forwarding DNS request:", err)
+			return
+		}
+
+		// Scrive la risposta sul conn
+		packageBytes, _ := fwd.Pack()
+		_, err = conn.WriteTo(packageBytes, addr)
+		if err != nil {
+			fmt.Println("Error writing DNS response:", err)
+			return
+		}
+		return hostnameFromDNS, 2
+	}
+
+	fmt.Println("DNS con .somet:", hostnameFromDNS)
+
+	//hostname con il prefisso .some
+	return hostnameFromDNS, 1
 }
