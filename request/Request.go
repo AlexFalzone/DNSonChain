@@ -2,7 +2,6 @@ package request
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -31,7 +30,7 @@ func MakeHTTPRequest(url string, hostname string, params interface{}) (interface
 
 	client, err := rpc.Dial(url)
 	if err != nil {
-		log.Fatalf("Could not connect to %s: %v", url, err)
+		fmt.Println("Could not connect: ", err)
 	}
 
 	call := EthCall{
