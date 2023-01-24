@@ -13,11 +13,10 @@ const (
 )
 
 /*
-	Leggenda variabile ex:
-
-	1 = tipo A, sito .somet
-	2 = tipo A, sito non .somet
-	3 = tipo non A
+Leggenda variabile ex:
+1 = tipo A, sito .somet
+2 = tipo A, sito non .somet
+3 = tipo non A
 */
 
 func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
@@ -39,7 +38,7 @@ func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
 	}
 
 	// Verifica se la richiesta è di tipo A
-	if len(msg.Question) == 0 || msg.Question[0].Qtype != dns.TypeA {
+	if len(msg.Question) == 0 || (msg.Question[0].Qtype != dns.TypeA && msg.Question[0].Qtype != dns.TypeAAAA) {
 		// inoltra la richiesta al server DNS cloudflare
 		fwd, err := dns.Exchange(msg, dnsServer)
 		if err != nil {
@@ -63,7 +62,7 @@ func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
 
 	//se la richiesta NON ha un suffisso .bit allora inoltra la richiesta al server DNS cloudflare
 	if !(strings.HasSuffix(hostnameFromDNS, ".somet")) {
-		fmt.Println("Richiesta di tipo A da mandare a DNS:", hostnameFromDNS)
+		fmt.Println("DNS esterno:", hostnameFromDNS)
 
 		// inoltra la richiesta al server DNS cloudflare
 		fwd, err := dns.Exchange(msg, dnsServer)
@@ -72,7 +71,7 @@ func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
 			return
 		}
 
-		// Scrive la risposta sul conn
+		// Send the response back to the browser
 		packageBytes, _ := fwd.Pack()
 		_, err = conn.WriteTo(packageBytes, addr)
 		if err != nil {
@@ -81,9 +80,8 @@ func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
 		}
 		return hostnameFromDNS, 2
 	}
+	fmt.Println("DNS interno:", hostnameFromDNS)
 
-	fmt.Println("DNS con .somet:", hostnameFromDNS)
-
-	//hostname con il prefisso .some
+	//hostname con il prefisso .somet
 	return hostnameFromDNS, 1
 }
