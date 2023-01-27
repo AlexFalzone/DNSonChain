@@ -12,8 +12,6 @@ import (
 /*
 TO-DO:
 -sistemare la funzione HandleRequest in maniera tale che non sia necessario stoppare il servizio DNS
--eliminare il parametro hostname dalla funzione MakeHTTPRequest (è lì solo per debug)
--sistemare infura che con systemd-resolved (spento) non funziona
 */
 
 func main() {
@@ -26,7 +24,7 @@ func main() {
 
 	fmt.Println("1. Infura")
 	fmt.Println("2. Localhost")
-	fmt.Println("Ctrl+d. Exit")
+	fmt.Println("(Ctrl+d). Exit")
 
 	var url string
 	var choice string

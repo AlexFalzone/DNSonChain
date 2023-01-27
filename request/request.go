@@ -1,6 +1,8 @@
 package request
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/rpc"
@@ -45,7 +47,22 @@ func MakeHTTPRequest(url string, hostname string, params interface{}) (interface
 		return response.Result, err
 	}
 
-	fmt.Println("Response from Infura: ", response.Result)
+	hexData, ok := response.Result.(string)
+	if !ok {
+		fmt.Println("Error casting to string")
+		return response.Result, errors.New("error casting to string")
+	}
 
-	return response.Result, nil
+	//hexData parte dalla posizione 2, quindi elimina i primi 2 caratteri (0x)
+	bytes, err := hex.DecodeString(hexData[2:])
+	if err != nil {
+		fmt.Println("Error decoding hex string")
+		return response.Result, err
+	}
+
+	str := string(bytes)
+
+	fmt.Println("Response from Infura: ", str)
+
+	return str, nil
 }
