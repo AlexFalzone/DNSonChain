@@ -28,7 +28,7 @@ type JSONRPCResponse struct {
 	ID      int         `json:"id"`
 }
 
-func MakeHTTPRequest(url string, hostname string, params interface{}) (interface{}, error) {
+func MakeHTTPRequest(url string, hostname string, params interface{}) (string, error) {
 
 	client, err := rpc.Dial(url)
 	if err != nil {
@@ -43,26 +43,24 @@ func MakeHTTPRequest(url string, hostname string, params interface{}) (interface
 	var response JSONRPCResponse
 	err = client.Call(&response.Result, "eth_call", call, "latest")
 	if err != nil {
-		fmt.Println("Cannot get the call:", err)
-		return response.Result, err
+		fmt.Println("Error calling eth_call: ", err)
+		return "", err
 	}
 
 	hexData, ok := response.Result.(string)
 	if !ok {
-		fmt.Println("Error casting to string")
-		return response.Result, errors.New("error casting to string")
+		fmt.Println("Error converting response to string")
+		return "", errors.New("error converting response to string")
 	}
 
 	//hexData parte dalla posizione 2, quindi elimina i primi 2 caratteri (0x)
 	bytes, err := hex.DecodeString(hexData[2:])
 	if err != nil {
 		fmt.Println("Error decoding hex string")
-		return response.Result, err
+		return "", err
 	}
 
 	str := string(bytes)
-
-	fmt.Println("Response from Infura: ", str)
 
 	return str, nil
 }
