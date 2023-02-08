@@ -1,51 +1,48 @@
 package cert
 
 import (
+	"bytes"
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/sha512"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
-	"math/big"
 	"net"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/namecoin/splicesign"
 )
 
+//TODO: signature algorithm is hardcoded to RSA, so it's useless to pass it as a parameter
+
+/*
+	campi da inserire nella blockchain:
+	-IPAddresses
+	-NotAfter
+	-NotBefore
+	-PublicKey PARENT
+	-Signature
+	-SignatureAlgorithm
+*/
 type JSONResultField struct {
 	IPAddresses        []net.IP  `json:"ipAddresses"`
 	NotAfter           time.Time `json:"notAfter"`
 	NotBefore          time.Time `json:"notBefore"`
 	PublicKey          string    `json:"publicKey"`
-	SerialNumber       *big.Int  `json:"serialNumber"`
 	Signature          []byte    `json:"signature"`
 	SignatureAlgorithm int64     `json:"signatureAlgorithm"`
-	Subject            pkix.Name `json:"subject"`
 }
-
-/*
-campi certificato: x509
--BasicConstraintsValid 	true
--ExtKeyUsage 			[]x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
--IPAddresses			(4 o 16 bytes) rispettivamente IPv4 o IPv6
--KeyUsage				x509.KeyUsageDigitalSignature
--NotAfter
--NotBefore
--PublicKey				rsa (2048, 3072, 4096 bytes) ecdsa (256, 384, 521 bytes) ed25519 (256 bytes)
--SerialNumber 			!!MUST be 20 bytes and unique!!
--Signature
--SignatureAlgorithm		SHA512WithRSA
--Subject
-*/
 
 /*
 	Takes a string in the format of ",key:"value,"
 	for the SUBJECT field, the value is in the format of ",key=value,".
 
 	For example:
-	input := "ipAddresses:\"192.168.1.1\",notAfter:\"2006-Jan-02\",notBefore:\"2005-Jan-02\",serialNumber:\"1234567890\",signatureAlgorithm:\"rsa\",subject:\"CN=example.com\""
+	input := "ipAddresses:\"192.168.1.1\",notAfter:\"2006-Jan-02\",notBefore:\"2005-Jan-02\",publicKey:\"publicKey\",signature:\"signature\",signatureAlgorithm:\"rsa\"
 */
 func ExtractJSONResultField(data string) (result JSONResultField, err error) {
 
@@ -86,29 +83,10 @@ func ExtractJSONResultField(data string) (result JSONResultField, err error) {
 			result.NotBefore = t
 		case "publicKey":
 			result.PublicKey = value
-		case "serialNumber":
-			sn, ok := big.NewInt(0).SetString(value, 10)
-			if !ok {
-				return result, fmt.Errorf("invalid serial number: %s", value)
-			}
-			result.SerialNumber = sn
 		case "signature":
 			result.Signature = []byte(value)
 		case "signatureAlgorithm":
 			result.SignatureAlgorithm = 10
-		case "subject":
-			keyValue := strings.Split(value, "=")
-			subjectKey := strings.TrimSpace(keyValue[0])
-			subjectValue := strings.TrimSpace(keyValue[1])
-			fmt.Println("subjectKey: ", subjectKey)
-			fmt.Println("subjectValue: ", subjectValue)
-			if subjectKey == "CN" {
-				result.Subject = pkix.Name{
-					CommonName: subjectValue,
-				}
-			} else {
-				return result, fmt.Errorf("invalid subject key: %s", subjectKey)
-			}
 		default:
 			return result, fmt.Errorf("unknown field: %s", key)
 		}
@@ -116,17 +94,78 @@ func ExtractJSONResultField(data string) (result JSONResultField, err error) {
 	return result, nil
 }
 
-func CreateCert(result JSONResultField) ([]byte, error) {
+//The function take a name and a JSONResultField and create
+//a serial number converting them into hashes and concatenating the first 20 bytes into serialHash
+func SerialNumber(name string, result JSONResultField) ([]byte, error) {
+	nameHash := sha256.Sum256([]byte(name))
+
+	pubkey64ToString, err := base64.StdEncoding.DecodeString(result.PublicKey)
+	if err != nil {
+		fmt.Println(err)
+	}
+	pubkeyHash := sha512.Sum512(pubkey64ToString)
+
+	notBeforeScaledBuf := new(bytes.Buffer)
+	err = binary.Write(notBeforeScaledBuf, binary.BigEndian, result.NotBefore)
+	if err != nil {
+		return nil, fmt.Errorf("binary.Write failed: %s", err)
+	}
+	notBeforeHash := sha256.Sum256(notBeforeScaledBuf.Bytes())
+
+	notAfterScaledBuf := new(bytes.Buffer)
+	err = binary.Write(notAfterScaledBuf, binary.BigEndian, result.NotAfter)
+	if err != nil {
+		return nil, fmt.Errorf("binary.Write failed: %s", err)
+	}
+	notAfterHash := sha256.Sum256(notAfterScaledBuf.Bytes())
+
+	serialHash := sha256.New()
+	_, err = serialHash.Write(nameHash[:])
+	if err != nil {
+		return nil, fmt.Errorf("serialHash.Write of nameHash failed: %s", err)
+	}
+	_, err = serialHash.Write(pubkeyHash[:])
+	if err != nil {
+		return nil, fmt.Errorf("serialHash.Write of pubkeyHash failed: %s", err)
+	}
+	_, err = serialHash.Write(notBeforeHash[:])
+	if err != nil {
+		return nil, fmt.Errorf("serialHash.Write of notBeforeHash failed: %s", err)
+	}
+	_, err = serialHash.Write(notAfterHash[:])
+	if err != nil {
+		return nil, fmt.Errorf("serialHash.Write of notAfterHash failed: %s", err)
+	}
+
+	// 19 bytes will be less than 2^159, see https://crypto.stackexchange.com/a/260
+	return serialHash.Sum(nil)[0:19], nil
+}
+
+func CreateCert(result JSONResultField, name string) ([]byte, error) {
 	template := x509.Certificate{
 		IPAddresses:        result.IPAddresses,
 		NotAfter:           result.NotAfter,
 		NotBefore:          result.NotBefore,
 		PublicKey:          result.PublicKey,
-		SerialNumber:       result.SerialNumber,
 		Signature:          result.Signature,
 		SignatureAlgorithm: x509.SHA512WithRSA,
-		Subject:            result.Subject,
+
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		IsCA:                  false,
 	}
+
+	template.Subject = pkix.Name{
+		CommonName:   name,
+		SerialNumber: "DA DEFINIRE",
+	}
+
+	serialNumberBytes, err := SerialNumber(name, result)
+	if err != nil {
+		return nil, err
+	}
+	template.SerialNumber.SetBytes(serialNumberBytes)
 
 	priv := &splicesign.SpliceSigner{
 		PublicKey: template.PublicKey,
