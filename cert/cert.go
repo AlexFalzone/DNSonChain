@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/namecoin/splicesign"
 )
 
 type JSONResultField struct {
@@ -39,18 +41,23 @@ campi certificato: x509
 */
 
 /*
-	Nella struct che verrà tornata dal smart contract, inserire i campi con i relativi nomi. In questo modo viene più facile prenderli e assegnarli al certificato.
-	Controllare i campi notafter e notbefore, non so se sono corretti.
-	Controllare il campo SignatureAlgorithm, non so se è corretto.
-	I campi del certificato dovrò prenderli manualmente dalla string restituita, assegnare ad ogni stringa il suo campo e poi creare il certificato?
+	Takes a string in the format of ",key:"value,"
+	for the SUBJECT field, the value is in the format of ",key=value,".
+
+	For example:
+	input := "ipAddresses:\"192.168.1.1\",notAfter:\"2006-Jan-02\",notBefore:\"2005-Jan-02\",serialNumber:\"1234567890\",signatureAlgorithm:\"rsa\",subject:\"CN=example.com\""
 */
-
-//takes a string in the format of "key:value"
-//and returns the value as a JSONResultField
 func ExtractJSONResultField(data string) (result JSONResultField, err error) {
-	// Initialize an empty JSONResultField struct.
-	//result := &JSONResultField{}
 
+	/*
+		REGEX EXPLANATION:
+		The first capturing group, (\w+), matches one or more word characters (letters, digits or underscores).
+		The second capturing group, :"([^"]+)",, matches a string surrounded by double quotes,
+		where [^"]+ matches one or more characters that are not double quotes.
+
+		For example, the string ",key:"value"," will be matched by the regex,
+		and the first capturing group will match "key" and the second capturing group will match "value".
+	*/
 	re := regexp.MustCompile(`(\w+):"([^"]+)",`)
 	matches := re.FindAllStringSubmatch(data, -1)
 
@@ -105,13 +112,11 @@ func ExtractJSONResultField(data string) (result JSONResultField, err error) {
 		default:
 			return result, fmt.Errorf("unknown field: %s", key)
 		}
-
 	}
 	return result, nil
-
 }
 
-func CreateCert(result JSONResultField) (cert *x509.Certificate) {
+func CreateCert(result JSONResultField) ([]byte, error) {
 	template := x509.Certificate{
 		IPAddresses:        result.IPAddresses,
 		NotAfter:           result.NotAfter,
@@ -123,5 +128,15 @@ func CreateCert(result JSONResultField) (cert *x509.Certificate) {
 		Subject:            result.Subject,
 	}
 
-	x509.CreateCertificate(rand.Reader, &template, &template, template.PublicKey /*add private key*/)
+	priv := &splicesign.SpliceSigner{
+		PublicKey: template.PublicKey,
+		Signature: template.Signature,
+	}
+
+	certificate, err := x509.CreateCertificate(rand.Reader, &template, &template, template.PublicKey, priv)
+	if err != nil {
+		return nil, err
+	}
+
+	return certificate, err
 }
