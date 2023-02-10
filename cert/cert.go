@@ -140,7 +140,6 @@ func serialNumber(name string, result JSONResultField) ([]byte, error) {
 }
 
 func CreateCert(result JSONResultField, name string) ([]byte, error) {
-
 	template := x509.Certificate{
 		IPAddresses:        result.IPAddresses,
 		NotAfter:           result.NotAfter,
