@@ -147,8 +147,9 @@ func CreateCert(result JSONResultField, name string) ([]byte, error) {
 		PublicKey:          result.PublicKey,
 		Signature:          result.Signature,
 		SignatureAlgorithm: x509.SignatureAlgorithm(x509.SHA512WithRSA),
+		DNSNames:           []string{name},
 
-		KeyUsage:              x509.KeyUsageDigitalSignature,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  false,
