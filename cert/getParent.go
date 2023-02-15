@@ -50,6 +50,7 @@ func GetParent(name string) (x509.Certificate, any) {
 	grandParent, grandParentPriv := GetGrandParent(name)
 
 	//Maybe it is not necessary??
+
 	// aiaPubBytes, err := x509.MarshalPKIXPublicKey(util.PublicKey(grandParentPriv))
 	// if err != nil {
 	// 	log.Fatalf("failed to marshal AIA CA public key: %v", err)
