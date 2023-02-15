@@ -107,5 +107,7 @@ func GenerateCert( /*name string, choice int*/ ) (x509.Certificate, any) {
 	}
 	log.Print("wrote key.pem\n")
 
+	writeChain()
+
 	return template, priv
 }

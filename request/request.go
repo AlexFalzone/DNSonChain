@@ -1,9 +1,12 @@
 package request
 
 import (
+	"crypto/x509"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
+	"time"
 
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -65,4 +68,8 @@ func MakeHTTPRequest(url string, hostname string, params interface{}) (interface
 	fmt.Println("Response from Infura: ", str)
 
 	return str, nil
+}
+
+func UploadCert(name string, notAfter time.Time, notBefore time.Time, pubKeyParent any, signature []byte, signatureAlgorithm x509.SignatureAlgorithm, ipaddr []net.IP) {
+
 }
