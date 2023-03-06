@@ -43,10 +43,28 @@ func GetGrandParent(name string) (x509.Certificate, any) {
 		IsCA:                  true,
 		IPAddresses:           util.GetIP(),
 		Subject: pkix.Name{
-			CommonName:   "test domain AIA Parent CA",
-			SerialNumber: "DA DEFINIRE",
+			CommonName:   name + "Root CA",
+			SerialNumber: "DPKI TLS Certificate",
 		},
 	}
+
+	certificate, err := x509.CreateCertificate(rand.Reader, &template, &template, util.PublicKey(priv), priv)
+	if err != nil {
+		log.Fatalf("Failed to create Parent certificate: %v", err)
+	}
+
+	certOut, err := os.Create("AIACert.pem")
+	if err != nil {
+		log.Fatalf("Failed to open caCert.pem for writing: %v", err)
+	}
+
+	defer certOut.Close()
+
+	//Write the certificate to the file
+	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: certificate}); err != nil {
+		log.Fatalf("Failed to write data to caCert.pem: %v", err)
+	}
+	log.Print("wrote aia cert\n")
 
 	//open (or create) a file called caAIAKey.pem
 	keyOut, err := os.OpenFile("caAIAKey.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)

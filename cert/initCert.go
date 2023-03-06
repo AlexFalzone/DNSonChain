@@ -24,7 +24,7 @@ const (
 )
 
 func GenerateCert( /*name string, choice int*/ ) (x509.Certificate, any) {
-	name := "test"
+	name := "prova123.com"
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
@@ -63,7 +63,7 @@ func GenerateCert( /*name string, choice int*/ ) (x509.Certificate, any) {
 		DNSNames:              []string{name},
 		Subject: pkix.Name{
 			CommonName:   name,
-			SerialNumber: "DA DEFINIRE",
+			SerialNumber: "DPKI TLS Certificate",
 		},
 	}
 

@@ -42,8 +42,8 @@ func GetParent(name string) (x509.Certificate, any) {
 		IsCA:                  true,
 		IPAddresses:           util.GetIP(),
 		Subject: pkix.Name{
-			CommonName:   "test domain CA",
-			SerialNumber: "DA DEFINIRE",
+			CommonName:   name + "Intermediate CA",
+			SerialNumber: "DPKI TLS Certificate",
 		},
 	}
 
