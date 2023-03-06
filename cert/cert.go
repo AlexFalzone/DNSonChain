@@ -1,13 +1,11 @@
 package cert
 
 import (
-	"bytes"
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/binary"
 	"fmt"
+	"math/big"
 	"net"
 	"regexp"
 	"strconv"
@@ -38,6 +36,7 @@ type JSONResultField struct {
 	PublicKey          any       `json:"publicKey"`
 	Signature          []byte    `json:"signature"`
 	SignatureAlgorithm int       `json:"signatureAlgorithm"`
+	SerialNumber       *big.Int  `json:"serialNumber"`
 }
 
 /*
@@ -95,48 +94,17 @@ func ExtractJSONResultField(data string) (result JSONResultField, err error) {
 				return result, fmt.Errorf("invalid signature algorithm: %s", value)
 			}
 			result.SignatureAlgorithm = sigAlgInt
+		case "serialNumber":
+			serialNumber, ok := new(big.Int).SetString(value, 10)
+			if !ok {
+				return result, fmt.Errorf("invalid serial number: %s", value)
+			}
+			result.SerialNumber = serialNumber
 		default:
 			return result, fmt.Errorf("unknown field: %s", key)
 		}
 	}
 	return result, nil
-}
-
-func serialNumber(name string, result JSONResultField) ([]byte, error) {
-	//name
-	nameHash := sha256.Sum256([]byte(name))
-
-	//notBefore
-	notBeforeScaledBuf := new(bytes.Buffer)
-	err := binary.Write(notBeforeScaledBuf, binary.BigEndian, result.NotBefore.Unix())
-	if err != nil {
-		return nil, err
-	}
-	notBeforeHash := sha256.Sum256(notBeforeScaledBuf.Bytes())
-
-	//notAfter
-	notAfterScaledBuf := new(bytes.Buffer)
-	err = binary.Write(notAfterScaledBuf, binary.BigEndian, result.NotAfter.Unix())
-	if err != nil {
-		return nil, err
-	}
-	notAfterHash := sha256.Sum256(notAfterScaledBuf.Bytes())
-
-	serialHash := sha256.New()
-	_, err = serialHash.Write(nameHash[:])
-	if err != nil {
-		return nil, err
-	}
-	_, err = serialHash.Write(notBeforeHash[:])
-	if err != nil {
-		return nil, err
-	}
-	_, err = serialHash.Write(notAfterHash[:])
-	if err != nil {
-		return nil, err
-	}
-
-	return serialHash.Sum(nil)[0:19], nil
 }
 
 func CreateCert(result JSONResultField, name string) ([]byte, error) {
@@ -147,22 +115,17 @@ func CreateCert(result JSONResultField, name string) ([]byte, error) {
 		PublicKey:          result.PublicKey,
 		Signature:          result.Signature,
 		SignatureAlgorithm: x509.SignatureAlgorithm(x509.SHA512WithRSA),
+		DNSNames:           []string{name},
+		SerialNumber:       result.SerialNumber,
 
-		KeyUsage:              x509.KeyUsageDigitalSignature,
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  false,
-	}
-
-	serialNumberBytes, err := serialNumber(name, result)
-	if err != nil {
-		return nil, err
-	}
-	template.SerialNumber.SetBytes(serialNumberBytes)
-
-	template.Subject = pkix.Name{
-		CommonName:   name,
-		SerialNumber: "DA DEFINIRE",
+		Subject: pkix.Name{
+			CommonName:   name,
+			SerialNumber: "DA DEFINIRE",
+		},
 	}
 
 	priv := &splicesign.SpliceSigner{
