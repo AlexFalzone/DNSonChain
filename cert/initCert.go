@@ -23,8 +23,7 @@ const (
 	rsaBits = 2048
 )
 
-func GenerateCert( /*name string, choice int*/ ) (x509.Certificate, any) {
-	name := "prova123.com"
+func GenerateCert(name string /*choice int*/) (x509.Certificate, any) {
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
