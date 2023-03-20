@@ -40,7 +40,6 @@ func GetParent(name string) (x509.Certificate, any) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  true,
-		IPAddresses:           util.GetIP(),
 		Subject: pkix.Name{
 			CommonName:   name + "Intermediate CA",
 			SerialNumber: "DPKI TLS Certificate",

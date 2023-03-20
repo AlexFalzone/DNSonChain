@@ -58,7 +58,6 @@ func GenerateCert(name string /*choice int*/) (x509.Certificate, any) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  false,
-		IPAddresses:           util.GetIP(),
 		DNSNames:              []string{name},
 		Subject: pkix.Name{
 			CommonName:   name,
