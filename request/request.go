@@ -1,12 +1,9 @@
 package request
 
 import (
-	"crypto/x509"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net"
-	"time"
 
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -39,6 +36,7 @@ func MakeHTTPRequest(url string, hostname string, params interface{}) (string, e
 	}
 
 	call := EthCall{
+		//for testing
 		To:   "0x2ff4dd4c2c511ed082f28ee5210fe7ab6979e812",
 		Data: "0x19ff1d21",
 	}
@@ -66,8 +64,4 @@ func MakeHTTPRequest(url string, hostname string, params interface{}) (string, e
 	str := string(bytes)
 
 	return str, nil
-}
-
-func UploadCert(name string, notAfter time.Time, notBefore time.Time, pubKeyParent any, signature []byte, signatureAlgorithm x509.SignatureAlgorithm, ipaddr []net.IP) {
-
 }

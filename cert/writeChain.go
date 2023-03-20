@@ -31,7 +31,7 @@ func writeChain() {
 
 	defer caChainOut.Close()
 
-	// Write a blank line to separate the leaf cert from the rest of the chain.
+	//Riga vuota per separare i certificati
 	_, err = chainOut.WriteString("\n\n")
 	if err != nil {
 		log.Fatalf("Failed to write CA cert padding to chain.pem: %v", err)
