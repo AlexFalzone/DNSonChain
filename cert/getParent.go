@@ -48,43 +48,29 @@ func GetParent(name string) (x509.Certificate, any) {
 
 	grandParent, grandParentPriv := GetGrandParent(name)
 
-	//Maybe it is not necessary??
-
-	// aiaPubBytes, err := x509.MarshalPKIXPublicKey(util.PublicKey(grandParentPriv))
-	// if err != nil {
-	// 	log.Fatalf("failed to marshal AIA CA public key: %v", err)
-	// }
-	// aiaPubHash := sha256.Sum256(aiaPubBytes)
-	// aiaPubHashStr := hex.EncodeToString(aiaPubHash[:])
-
-	// aiaBaseURL := "aia.x--nmc.bit/aia"
-	// aiaURL := aiaBaseURL + "?domain=" + *&name + "&pubsha256=" + aiaPubHashStr
-	// template.IssuingCertificateURL = []string{"http://" + aiaURL}
-
 	certificate, err := x509.CreateCertificate(rand.Reader, &template, &grandParent, util.PublicKey(priv), grandParentPriv)
 	if err != nil {
 		log.Fatalf("Failed to create Parent certificate: %v", err)
 	}
 
 	//Create a file called caCert.pem
-	certOut, err := os.Create("caCert.pem")
+	certOut, err := os.Create("list/certIntermediate.pem")
 	if err != nil {
-		log.Fatalf("Failed to open caCert.pem for writing: %v", err)
+		log.Fatalf("Failed to open certIntermediate.pem for writing: %v", err)
 	}
 
 	defer certOut.Close()
 
 	//Write the certificate to the file
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: certificate}); err != nil {
-		log.Fatalf("Failed to write data to caCert.pem: %v", err)
+		log.Fatalf("Failed to write data to certIntermediate.pem: %v", err)
 	}
-	log.Print("wrote caCert.pem\n")
+	log.Print("wrote certIntermediate.pem\n")
 
-	//Create a file called caKey.pem
-	keyOut, err := os.OpenFile("caKey.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	//Create a file called keyIntermediate.pem
+	keyOut, err := os.OpenFile("list/keyIntermediate.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Failed to open caKey.pem for writing: %v", err)
-		//return
+		log.Fatalf("Failed to open keyIntermediate.pem for writing: %v", err)
 	}
 	defer keyOut.Close()
 
@@ -96,10 +82,10 @@ func GetParent(name string) (x509.Certificate, any) {
 
 	//Write the private key to the file
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		log.Fatalf("Failed to write data to caKey.pem: %v", err)
+		log.Fatalf("Failed to write data to keyIntermediate.pem: %v", err)
 	}
 
-	log.Print("wrote caKey.pem\n")
+	log.Print("wrote keyIntermediate.pem\n")
 
 	return template, priv
 }

@@ -72,7 +72,7 @@ func GenerateCert(name string /*choice int*/) (x509.Certificate, any) {
 	}
 
 	//create a file called cert.pem
-	certOut, err := os.Create("cert.pem")
+	certOut, err := os.Create("list/certHost.pem")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,12 +83,12 @@ func GenerateCert(name string /*choice int*/) (x509.Certificate, any) {
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: certificate}); err != nil {
 		log.Fatal(err)
 	}
-	log.Print("written cert.pem\n")
+	log.Print("written certHost.pem\n")
 
-	//create a file called key.pem
-	keyOut, err := os.OpenFile("key.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	//create a file called keyHost.pem
+	keyOut, err := os.OpenFile("list/keyHost.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Failed to open key.pem for writing: %v", err)
+		log.Fatalf("Failed to open keyHost.pem for writing: %v", err)
 	}
 
 	defer keyOut.Close()
@@ -101,9 +101,9 @@ func GenerateCert(name string /*choice int*/) (x509.Certificate, any) {
 
 	//write the private key into key.pem
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		log.Fatalf("Failed to write data to key.pem: %v", err)
+		log.Fatalf("Failed to write data to keyHost.pem: %v", err)
 	}
-	log.Print("wrote key.pem\n")
+	log.Print("wrote keyHost.pem\n")
 
 	writeChain()
 

@@ -52,23 +52,30 @@ func GetGrandParent(name string) (x509.Certificate, any) {
 		log.Fatalf("Failed to create Parent certificate: %v", err)
 	}
 
-	certOut, err := os.Create("AIACert.pem")
+	if _, err := os.Stat("list"); os.IsNotExist(err) {
+		err := os.Mkdir("list", 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	certOut, err := os.Create("list/certRoot.pem")
 	if err != nil {
-		log.Fatalf("Failed to open caCert.pem for writing: %v", err)
+		log.Fatalf("Failed to open certRoot.pem for writing: %v", err)
 	}
 
 	defer certOut.Close()
 
 	//Write the certificate to the file
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: certificate}); err != nil {
-		log.Fatalf("Failed to write data to caCert.pem: %v", err)
+		log.Fatalf("Failed to write data to certRoot.pem: %v", err)
 	}
 	log.Print("wrote aia cert\n")
 
-	//open (or create) a file called caAIAKey.pem
-	keyOut, err := os.OpenFile("caAIAKey.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	//open (or create) a file called keyRoot.pem
+	keyOut, err := os.OpenFile("list/keyRoot.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Failed to open caAIAKey.pem for writing: %v", err)
+		log.Fatalf("Failed to open keyRoot.pem for writing: %v", err)
 		//return
 	}
 	defer keyOut.Close()
@@ -81,10 +88,10 @@ func GetGrandParent(name string) (x509.Certificate, any) {
 
 	//write the private key to the file
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		log.Fatalf("Failed to write data to caAIAKey.pem: %v", err)
+		log.Fatalf("Failed to write data to keyRoot.pem: %v", err)
 	}
 
-	log.Print("wrote caAIAKey.pem\n")
+	log.Print("wrote keyRoot.pem\n")
 
 	return template, priv
 }
