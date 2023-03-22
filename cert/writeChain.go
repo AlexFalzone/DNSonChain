@@ -1,7 +1,6 @@
 package cert
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -14,7 +13,7 @@ func writeChain() {
 
 	defer chainOut.Close()
 
-	leafCert, err := ioutil.ReadFile("list/certHost.pem")
+	leafCert, err := os.ReadFile("list/certHost.pem")
 	if err != nil {
 		log.Fatalf("Failed to read certHost.pem: %v", err)
 	}
@@ -32,7 +31,7 @@ func writeChain() {
 
 	parentToRead := "certIntermediate.pem"
 
-	caCert, err := ioutil.ReadFile("list/" + parentToRead)
+	caCert, err := os.ReadFile("list/" + parentToRead)
 	if err != nil {
 		log.Fatalf("Failed to read %s: %v", parentToRead, err)
 	}

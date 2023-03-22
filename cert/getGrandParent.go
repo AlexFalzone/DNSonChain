@@ -53,7 +53,7 @@ func GetGrandParent(name string) (x509.Certificate, any) {
 	}
 
 	if _, err := os.Stat("list"); os.IsNotExist(err) {
-		err := os.Mkdir("list", 0755)
+		err := os.Mkdir("list", 0777)
 		if err != nil {
 			log.Fatal(err)
 		}
