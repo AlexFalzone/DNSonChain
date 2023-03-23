@@ -36,14 +36,16 @@ contract DomainRegistry {
         }
         require(dotCount > 0, "Invalid hostname");
 
-        // Trova il dominio padre
-        string memory parentDomain = _getParentDomain(hostnameBytes);
+        //in questo modo si salta il controllo su .somet
+        if (dotCount > 1) {
+            // Trova il dominio padre
+            string memory parentDomain = _getParentDomain(hostnameBytes);
 
-        // Verifica che il dominio padre sia registrato e che l'owner sia lo stesso
-        require(
-            domains[parentDomain].owner == msg.sender,"Parent domain not registered or not owned by sender"
-        );
-
+            // Verifica che il dominio padre sia registrato e che l'owner sia lo stesso
+            require(
+                domains[parentDomain].owner == msg.sender,"Parent domain not registered or not owned by sender"
+            );
+        }
         // Registra il dominio
         domains[hostname] = Domain({
             hostname: hostname,
@@ -105,13 +107,13 @@ contract DomainRegistry {
         emit DomainDeleted(hostname);
     }
 
-    function getCertificate(string calldata hostname) external view returns (bytes memory, string memory) {
+    function getCertificate(string calldata hostname) external view returns (string memory, bytes memory) {
         Domain storage domain = domains[hostname];
 
         require(bytes(domain.hostname).length > 0, "Domain not found");
         require(domain.data > block.timestamp, "Certificate has expired");
 
-        return (domain.certificate, domain.ip);
+        return (domain.ip, domain.certificate);
     }
 }
 
