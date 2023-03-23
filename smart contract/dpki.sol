@@ -6,7 +6,7 @@ contract DomainRegistry {
     struct Domain {
         string hostname;
         string ip;
-        string certificate;
+        bytes certificate;
         uint256 data;
         address owner;
     }
@@ -16,7 +16,7 @@ contract DomainRegistry {
     event DomainCreated(
         string hostname,
         string ip,
-        string certificate,
+        bytes certificate,
         uint256 data,
         address indexed owner
     );
@@ -24,7 +24,7 @@ contract DomainRegistry {
     function createDomain(
         string calldata hostname,
         string calldata ip,
-        string calldata certificate,
+        bytes calldata certificate,
         uint256 data
     ) external {
         bytes memory hostnameBytes = bytes(hostname);
@@ -77,14 +77,14 @@ contract DomainRegistry {
     event DomainUpdated(
         string hostname,
         string ip,
-        string certificate,
+        bytes certificate,
         uint256 data
     );
 
     function updateDomain(
         string calldata hostname,
         string calldata ip,
-        string calldata certificate,
+        bytes calldata certificate,
         uint256 data
     ) external {
         require(domains[hostname].owner == msg.sender, "Domain not owned by sender");
@@ -105,13 +105,13 @@ contract DomainRegistry {
         emit DomainDeleted(hostname);
     }
 
-    function getCertificate(string calldata hostname) external view returns (string memory) {
+    function getCertificate(string calldata hostname) external view returns (bytes memory, string memory) {
         Domain storage domain = domains[hostname];
 
         require(bytes(domain.hostname).length > 0, "Domain not found");
         require(domain.data > block.timestamp, "Certificate has expired");
 
-        return domain.certificate;
+        return (domain.certificate, domain.ip);
     }
 }
 
