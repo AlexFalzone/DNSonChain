@@ -9,13 +9,6 @@ import (
 	"github.com/miekg/dns"
 )
 
-/*
-Leggenda variabile ex:
-1 = tipo A, sito .somet
-2 = tipo A, sito non .somet
-3 = tipo non A
-*/
-
 const (
 	dnsServer = "1.1.1.1:53"
 
