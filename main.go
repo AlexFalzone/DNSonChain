@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"test/cert"
+	"net"
+	"test/dns"
+	"test/request"
 	"test/util"
 )
 
@@ -12,67 +14,64 @@ TO-DO:
 */
 
 func main() {
-	// JSONRPCRequest := request.JSONRPCRequest{
-	// 	JSONRPC: "2.0",
-	// 	Method:  "eth_call",
-	// 	Params:  []interface{}{map[string]interface{}{"to": "0x2ff4dd4c2c511ed082f28ee5210fe7ab6979e812", "data": "0x19ff1d21"}, "latest"},
-	// 	ID:      1,
-	// }
-
-	// // Crea un nuovo conn UDP sulla porta 53
-	// conn, err := net.ListenPacket("udp", ":53")
-	// if err != nil {
-	// 	fmt.Println("Error listening on DNS port:", err)
-	// 	return
-	// }
-	// defer conn.Close()
-
-	// fmt.Println("1. Infura")
-	// fmt.Println("2. Localhost")
-	// fmt.Println("3. Create certificate")
-
-	// var url string
-	// var choice string
-	// fmt.Scan(&choice)
-	// choiceInt, _ := strconv.Atoi(choice)
-
-	// for {
-	// 	check := int8(0)
-	// 	var response, hostname string
-
-	// 	hostname, check = dns.HandleRequest(conn)
-
-	// 	if choiceInt == 3 { //create certificate
-	// 		_, _, _ = util.MenuCertificate()
-	name := "test123.com"
-	_, _ = cert.GenerateCert(name)
-
-	err := util.ConvertCert("list/certHost.pem")
+	// Crea un nuovo conn UDP sulla porta 53
+	conn, err := net.ListenPacket("udp", ":53")
 	if err != nil {
-		fmt.Println("Error converting certificate:", err)
+		fmt.Println("Error listening on DNS port:", err)
+		return
 	}
+	defer conn.Close()
 
-	fmt.Println("name:", name)
+	var url string
 
-	// 	} else if choiceInt == 1 || choiceInt == 2 {
+	for {
+		/*
+			1. Infura
+			2. Localhost
+			3. Certificates Management
+			4. Exit
+		*/
+		choiceInt := util.DisplayMainMenu()
 
-	// 		if check == 1 { //check == 1 -> DNS request of type A with .somet site
-	// 			if choiceInt == 1 { //Infura
-	// 				url = "https://goerli.infura.io/v3/d777809793694d9dacf5e1f94bfec65a"
-	// 			} else if choiceInt == 2 { //Localhost
-	// 				url = "http://localhost:8545"
-	// 			}
+		if choiceInt == 4 {
+			break
+		}
 
-	// 			go func() {
-	// 				response, err := request.MakeHTTPRequest(url, hostname, JSONRPCRequest.Params)
-	// 				if err != nil {
-	// 					fmt.Println(response, err)
-	// 				}
-	// 			}()
+		hostname, _ := dns.HandleRequest(conn)
 
-	// 			fmt.Println(response)
-	// 			//INJECT CERTIFICATE
-	// 		}
-	// 	}
-	// }
+		if choiceInt == 3 { //certificates management
+			for {
+				/*
+					1. Generate Certificate
+					2. Revoke Certificate
+					3. Renew Certificate
+					4. Back to main menu
+				*/
+				choiceInt := util.DisplayCertificatesMenu()
+
+				if choiceInt == 4 { // Back to main menu
+					break
+				}
+
+				url := util.GetInfuraOrLocalhost()
+				request.CertificatesManagement(choiceInt, url)
+			}
+		} else if choiceInt == 1 || choiceInt == 2 { //infura or localhost from the main menu
+			if choiceInt == 1 { //Infura
+				url = "https://goerli.infura.io/v3/d777809793694d9dacf5e1f94bfec65a"
+			} else if choiceInt == 2 { //Localhost
+				url = "http://localhost:8545"
+			}
+			client, err := request.DialClient(url)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			_, _, err = request.Request(client, 4, hostname, nil)
+			if err != nil {
+				fmt.Println(err)
+			}
+			//INJECT CERTIFICATE
+		}
+	}
 }
