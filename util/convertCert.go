@@ -3,45 +3,38 @@ package util
 import (
 	"bytes"
 	"crypto/x509"
-	"encoding/asn1"
 	"encoding/pem"
 	"fmt"
 	"os"
 )
 
-// Converte un certificato da PEM a DER
-func ConvertCertToDER(certName string) error {
-	pemData, err := os.ReadFile(certName)
+// Convert a certificate from PEM to DER format
+func ConvertCertToDER(certFile string) ([]byte, error) {
+	pemData, err := os.ReadFile(certFile)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Impossibile leggere il file del certificato PEM: %v\n", err)
+		return nil, err
 	}
 
-	// Estrai il blocco PEMsss
+	// Decode the PEM data
 	block, _ := pem.Decode(pemData)
+	if block == nil {
+		fmt.Println("Impossibile decodificare il certificato PEM")
+		return nil, err
+	}
 
-	// Parsa il certificato
+	if block.Type != "CERTIFICATE" {
+		fmt.Printf("Il blocco PEM non contiene un certificato: %v\n", err)
+		return nil, err
+	}
+
+	// create a x509 certificate from the PEM data
 	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		panic(err)
 	}
 
-	// Serializza il certificato in formato DER
-	derBytes, err := asn1.Marshal(cert.Raw)
-	if err != nil {
-		panic(err)
-	}
-
-	nameWithoutSuffix, err := removeSuffix(certName)
-	if err != nil {
-		panic(err)
-	}
-
-	// Salva i dati in un file DER
-	err = os.WriteFile(nameWithoutSuffix+".der", derBytes, 0644)
-	if err != nil {
-		panic(err)
-	}
-	return nil
+	return cert.Raw, nil
 }
 
 func ConvertCertificateToPEM(certificateBytes []byte) (string, error) {
