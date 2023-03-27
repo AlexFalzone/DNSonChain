@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"net"
+	"runtime"
 	"test/dns"
+	"test/inject"
 	"test/request"
 	"test/util"
 )
@@ -14,7 +16,7 @@ TO-DO:
 */
 
 func main() {
-	// Crea un nuovo conn UDP sulla porta 53
+	// Create a new connection UDP to port 53
 	conn, err := net.ListenPacket("udp", ":53")
 	if err != nil {
 		fmt.Println("Error listening on DNS port:", err)
@@ -72,6 +74,14 @@ func main() {
 				fmt.Println(err)
 			}
 			//INJECT CERTIFICATE
+			switch runtime.GOOS {
+			case "windows":
+				fmt.Println("Windows")
+			case "linux":
+				fmt.Println("Linux")
+				inject.InjectPKI(hostname)
+				inject.InjectMozilla(hostname)
+			}
 		}
 	}
 }
