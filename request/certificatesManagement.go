@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	"test/cert"
 	"test/util"
 )
 
@@ -22,6 +23,8 @@ func CertificatesManagement(choice int, url string) {
 		fmt.Println(err)
 		return
 	}
+
+	cert.GenerateCert(name)
 
 	certBytes, err := util.ConvertCertToDER("list/certHost.pem")
 	if err != nil {
