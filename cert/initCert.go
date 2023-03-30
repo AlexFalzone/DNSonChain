@@ -23,7 +23,7 @@ const (
 	rsaBits = 2048
 )
 
-func GenerateCert(name string /*choice int*/) (x509.Certificate, any) {
+func GenerateCert(name string /*choice int*/) ([]byte, any, error) {
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
@@ -107,5 +107,5 @@ func GenerateCert(name string /*choice int*/) (x509.Certificate, any) {
 
 	writeChain()
 
-	return template, priv
+	return certificate, priv, err
 }
