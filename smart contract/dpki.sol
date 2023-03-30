@@ -36,25 +36,36 @@ contract DomainRegistry {
         }
         require(dotCount > 0, "Invalid hostname");
 
-        //in questo modo si salta il controllo su .somet
+        // In this case, we skip the root domain
         if (dotCount > 1) {
-            // Trova il dominio padre
+            // Find the parent domain
             string memory parentDomain = _getParentDomain(hostnameBytes);
 
-            // Verifica che il dominio padre sia registrato e che l'owner sia lo stesso
+            // Verify that the parent domain is registered and owned by the sender
             require(
                 domains[parentDomain].owner == msg.sender,"Parent domain not registered or not owned by sender"
             );
         }
-        // Registra il dominio
+
+        /* 
+            Check if hostname is already registered
+            In the case of expired domain, delete the domain
+            so it is possible to re-register the domain
+        */ 
+        if (bytes(domains[hostname].hostname).length > 0) {
+            require(domains[hostname].data <= block.timestamp, "Hostname already registered and not expired");
+            delete domains[hostname];
+        }
+
+        // Registrer the domain
         domains[hostname] = Domain({
             hostname: hostname,
             ip: ip,
             certificate: certificate,
             owner: msg.sender,
 
-            //se la data è 0, allora la data è il massimo valore di uint256
-            //altrimenti la data è quella passata come parametro
+            // If the date is 0, the domain will never expire
+            // otherwise, the domain will expire after the given number of seconds
             data: data == 0 ? type(uint256).max : block.timestamp + data
         });
 
