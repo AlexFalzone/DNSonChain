@@ -69,18 +69,31 @@ func main() {
 				fmt.Println(err)
 			}
 
-			_, _, err = request.Request(client, 4, hostname, nil)
+			_, certBytes, err := request.Request(client, 4, hostname, nil)
 			if err != nil {
 				fmt.Println(err)
 			}
+
+			// Convert certificate to PEM
+			certString, err := util.ConvertCertToPEM(certBytes)
+			if err != nil {
+				fmt.Println(err)
+			}
+
 			//INJECT CERTIFICATE
 			switch runtime.GOOS {
 			case "windows":
 				fmt.Println("Windows")
 			case "linux":
 				fmt.Println("Linux")
-				inject.InjectPKI(hostname)
-				inject.InjectMozilla(hostname)
+				err := inject.InjectPKI(hostname, certString)
+				if err != nil {
+					fmt.Println(err)
+				}
+				err = inject.InjectMozilla(hostname, certString)
+				if err != nil {
+					fmt.Println(err)
+				}
 			}
 		}
 	}
