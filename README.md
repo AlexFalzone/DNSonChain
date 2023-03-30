@@ -128,7 +128,7 @@ Please feel free to submit issues, fork the repository and send pull requests!
 <a name="license"></a>
 ## License
 
-This project is released under the [MIT License](LICENSE).
+This project is released under the GPL License.
 
 ## Contact
 
