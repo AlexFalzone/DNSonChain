@@ -24,7 +24,7 @@ contract DomainRegistry {
     function createDomain(
         string calldata hostname,
         string calldata ip,
-        bytes calldata certificate,
+        bytes memory certificate,
         uint256 data
     ) external {
         bytes memory hostnameBytes = bytes(hostname);
@@ -97,9 +97,10 @@ contract DomainRegistry {
     function updateDomain(
         string calldata hostname,
         string calldata ip,
-        bytes calldata certificate,
+        bytes memory certificate,
         uint256 data
     ) external {
+        require(bytes(domains[hostname].hostname).length > 0, "Domain not found");
         require(domains[hostname].owner == msg.sender, "Domain not owned by sender");
 
         domains[hostname].ip = ip;
@@ -123,6 +124,16 @@ contract DomainRegistry {
 
         require(bytes(domain.hostname).length > 0, "Domain not found");
         require(domain.data > block.timestamp, "Certificate has expired");
+
+        // If the certificate is odd, we need to add a 0 byte at the beginning
+        if (domain.certificate.length % 2 != 0) {
+            bytes memory adjustedCertificate = new bytes(domain.certificate.length + 1);
+            adjustedCertificate[0] = 0;
+            for (uint256 i = 0; i < domain.certificate.length; i++) {
+                adjustedCertificate[i + 1] = domain.certificate[i];
+            }
+            return (domain.ip, adjustedCertificate);
+        }
 
         return (domain.ip, domain.certificate);
     }
