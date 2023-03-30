@@ -34,7 +34,7 @@ func (e *DialClientError) Error() string {
 
 const (
 	keyfile        = "private_key.key"
-	contractAdress = "test"
+	contractAdress = "0x2803a08f27961aca693cba8a0a28513864ce30eb"
 )
 
 func DialClient(url string) (*ethclient.Client, error) {
@@ -95,6 +95,7 @@ func Request(client *ethclient.Client, choice int, name string, cert []byte) (st
 		log.Fatal(err)
 	}
 
+	// We then need to extract the Ethereum address from the private key
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
@@ -121,9 +122,10 @@ func Request(client *ethclient.Client, choice int, name string, cert []byte) (st
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0) // in wei
-	auth.GasLimit = uint64(0)  //con 0 si stima automaticamente
+	auth.Value = big.NewInt(0)      // in wei
+	auth.GasLimit = uint64(3000000) // in units
 	auth.GasPrice = gasPrice
 
 	address := common.HexToAddress(contractAdress)
