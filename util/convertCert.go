@@ -1,9 +1,9 @@
 package util
 
 import (
-	"bytes"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -37,19 +37,23 @@ func ConvertCertToDER(certFile string) ([]byte, error) {
 	return cert.Raw, nil
 }
 
-func ConvertCertificateToPEM(certificateBytes []byte) (string, error) {
+func ConvertCertToPEM(certBytes []byte) (string, error) {
+	cert, err := x509.ParseCertificate(certBytes)
+	if err != nil {
+		return "", errors.New("failed to parse certificate")
+	}
+
 	// Create a PEM block from the certificate bytes
 	pemBlock := &pem.Block{
 		Type:  "CERTIFICATE",
-		Bytes: certificateBytes,
+		Bytes: cert.Raw,
 	}
 
 	// Encode the PEM block as a string
-	var pemBytes bytes.Buffer
-	err := pem.Encode(&pemBytes, pemBlock)
-	if err != nil {
-		return "", fmt.Errorf("failed to encode PEM block: %v", err)
+	pemBytes := pem.EncodeToMemory(pemBlock)
+	if pemBytes == nil {
+		return "", errors.New("failed to encode PEM")
 	}
 
-	return pemBytes.String(), nil
+	return string(pemBytes), nil
 }
