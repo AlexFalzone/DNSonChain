@@ -49,7 +49,7 @@ func DialClient(url string) (*ethclient.Client, error) {
 	}
 }
 
-func createDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string, certificate []byte) {
+func createDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string, certificate string) {
 	//FOR NOW
 	//insert a 1 day validity
 	date := time.Now().Add(time.Duration(time.Now().Day())).Unix()
@@ -61,7 +61,7 @@ func createDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegist
 	fmt.Printf("Domain created: %s", tx.Hash().Hex())
 }
 
-func updateDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string, certificate []byte) {
+func updateDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string, certificate string) {
 	//FOR NOW
 	//insert a 1 day validity
 	date := time.Now().Add(time.Duration(time.Now().Day())).Unix()
@@ -89,7 +89,7 @@ func getCertificate(auth *bind.TransactOpts, instance *domainRegistry.DomainRegi
 	return ip, certificate, err
 }
 
-func Request(client *ethclient.Client, choice int, name string, cert []byte) (string, []byte, error) {
+func Request(client *ethclient.Client, choice int, name string, cert string) (string, []byte, error) {
 	privateKey, err := ReadOrCreatePrivateKey(keyfile)
 	if err != nil {
 		log.Fatal(err)

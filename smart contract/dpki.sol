@@ -6,7 +6,7 @@ contract DomainRegistry {
     struct Domain {
         string hostname;
         string ip;
-        bytes certificate;
+        string certificate;
         uint256 data;
         address owner;
     }
@@ -16,7 +16,7 @@ contract DomainRegistry {
     event DomainCreated(
         string hostname,
         string ip,
-        bytes certificate,
+        string certificate,
         uint256 data,
         address indexed owner
     );
@@ -24,7 +24,7 @@ contract DomainRegistry {
     function createDomain(
         string calldata hostname,
         string calldata ip,
-        bytes memory certificate,
+        string memory certificate,
         uint256 data
     ) external {
         bytes memory hostnameBytes = bytes(hostname);
@@ -90,14 +90,14 @@ contract DomainRegistry {
     event DomainUpdated(
         string hostname,
         string ip,
-        bytes certificate,
+        string certificate,
         uint256 data
     );
 
     function updateDomain(
         string calldata hostname,
         string calldata ip,
-        bytes memory certificate,
+        string memory certificate,
         uint256 data
     ) external {
         require(bytes(domains[hostname].hostname).length > 0, "Domain not found");
@@ -126,16 +126,17 @@ contract DomainRegistry {
         require(domain.data > block.timestamp, "Certificate has expired");
 
         // If the certificate is odd, we need to add a 0 byte at the beginning
-        if (domain.certificate.length % 2 != 0) {
-            bytes memory adjustedCertificate = new bytes(domain.certificate.length + 1);
+        if (bytes(domain.certificate).length % 2 != 0) {
+            bytes memory certificateBytes = bytes(domain.certificate);
+            bytes memory adjustedCertificate = new bytes(certificateBytes.length + 1);
             adjustedCertificate[0] = 0;
-            for (uint256 i = 0; i < domain.certificate.length; i++) {
-                adjustedCertificate[i + 1] = domain.certificate[i];
+            for (uint256 i = 0; i < certificateBytes.length; i++) {
+                adjustedCertificate[i + 1] = certificateBytes[i];
             }
-            return (domain.ip, adjustedCertificate);
+            return ((domain.ip), adjustedCertificate);
         }
 
-        return (domain.ip, domain.certificate);
+        return ((domain.ip), bytes(domain.certificate));
     }
 }
 

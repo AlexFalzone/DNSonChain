@@ -1,9 +1,9 @@
 package request
 
 import (
+	"encoding/hex"
 	"fmt"
 	"test/cert"
-	"test/util"
 )
 
 func CertificatesManagement(choice int, url string) {
@@ -24,15 +24,15 @@ func CertificatesManagement(choice int, url string) {
 		return
 	}
 
-	cert.GenerateCert(name)
-
-	certBytes, err := util.ConvertCertToDER("list/certHost.pem")
+	certDER, _, err := cert.GenerateCert(name)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	_, _, err = Request(client, choice, name, certBytes)
+	certHex := "0x" + hex.EncodeToString(certDER)
+
+	_, _, err = Request(client, choice, name, certHex)
 	if err != nil {
 		fmt.Println(err)
 		return
