@@ -39,8 +39,6 @@ func main() {
 			break
 		}
 
-		hostname, _ := dns.HandleRequest(conn)
-
 		if choiceInt == 3 { //certificates management
 			for {
 				/*
@@ -59,8 +57,11 @@ func main() {
 				request.CertificatesManagement(choiceInt, url)
 			}
 		} else if choiceInt == 1 || choiceInt == 2 { //infura or localhost from the main menu
+
+			hostname, _ := dns.HandleRequest(conn)
+
 			if choiceInt == 1 { //Infura
-				url = "https://goerli.infura.io/v3/d777809793694d9dacf5e1f94bfec65a"
+				url = "https://sepolia.infura.io/v3/d777809793694d9dacf5e1f94bfec65a"
 			} else if choiceInt == 2 { //Localhost
 				url = "http://localhost:8545"
 			}
@@ -69,7 +70,8 @@ func main() {
 				fmt.Println(err)
 			}
 
-			_, certBytes, err := request.Request(client, 4, hostname, nil)
+			// Get certificate
+			_, certBytes, err := request.Request(client, 4, hostname, "")
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -86,15 +88,13 @@ func main() {
 				fmt.Println("Windows")
 			case "linux":
 				fmt.Println("Linux")
-				err := inject.InjectPKI(hostname, certString)
-				if err != nil {
-					fmt.Println(err)
-				}
-				err = inject.InjectMozilla(hostname, certString)
+
+				inject.InjcetLinux(certString, hostname)
 				if err != nil {
 					fmt.Println(err)
 				}
 			}
 		}
 	}
+
 }
