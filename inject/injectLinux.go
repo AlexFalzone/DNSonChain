@@ -8,10 +8,9 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
-	"test/util"
 )
 
-func InjectPKI(name string, cert string) error {
+func InjectPKI(name string, certPath string) error {
 
 	// Get the current user
 	homeDir, err := os.UserHomeDir()
@@ -20,7 +19,7 @@ func InjectPKI(name string, cert string) error {
 	}
 	nssdbPath := filepath.Join(homeDir, ".pki", "nssdb")
 
-	cmd := exec.Command("certutil", "-A", "-d", "sql:"+nssdbPath, "-t", "C,,", "-n", name, "-i", cert)
+	cmd := exec.Command("certutil", "-A", "-d", "sql:"+nssdbPath, "-t", "C,,", "-n", name, "-i", certPath)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -31,7 +30,7 @@ func InjectPKI(name string, cert string) error {
 }
 
 // InjectMozilla finds the default-release profile of Firefox and injects the certificate
-func InjectMozilla(name string, cert string) error {
+func InjectMozilla(name string, certPath string) error {
 
 	// Get the current user
 	usr, err := user.Current()
@@ -59,7 +58,7 @@ func InjectMozilla(name string, cert string) error {
 		log.Fatal("Impossibile trovare il profilo Firefox")
 	}
 
-	cmd := exec.Command("certutil", "-A", "-d", "sql:"+profilePath, "-t", "C,,", "-n", name, "-i", cert)
+	cmd := exec.Command("certutil", "-A", "-d", "sql:"+profilePath, "-t", "C,,", "-n", name, "-i", certPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to execute command: %v\nOutput: %s", err, output)
@@ -68,22 +67,33 @@ func InjectMozilla(name string, cert string) error {
 	return nil
 }
 
-func InjcetLinux(certString string, hostname string) error {
-	err := util.CreateandWriteTemp(certString)
+func SaveCertToFile(certContent string) (string, error) {
+	certDir := "tmp"
+	err := os.MkdirAll(certDir, 0755)
 	if err != nil {
-		fmt.Println(err)
+		return "", fmt.Errorf("failed to create certReq directory: %v", err)
 	}
 
-	errPKI := InjectPKI(hostname, certString)
+	certPath := filepath.Join(certDir, "tmp.pem")
+	err = os.WriteFile(certPath, []byte(certContent), 0644)
 	if err != nil {
-		fmt.Println(err)
-	}
-	errMozilla := InjectMozilla(hostname, certString)
-	if err != nil {
-		fmt.Println(err)
+		return "", fmt.Errorf("failed to write certificate to file: %v", err)
 	}
 
-	util.RemoveTempFile(errPKI, errMozilla, err)
+	return certPath, nil
+}
+
+func InjcetLinux(hostname string, certPath string) error {
+
+	errPKI := InjectPKI(hostname, certPath)
+	if errPKI != nil {
+		fmt.Println(errPKI)
+	}
+
+	errMozilla := InjectMozilla(hostname, certPath)
+	if errMozilla != nil {
+		fmt.Println(errMozilla)
+	}
 
 	return nil
 }
