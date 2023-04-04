@@ -34,9 +34,10 @@ func (e *DialClientError) Error() string {
 
 const (
 	keyfile        = "private_key.key"
-	contractAdress = "0x2803a08f27961aca693cba8a0a28513864ce30eb"
+	contractAdress = "0x987a844139EC14B97e91E9e524dc86A24DC8D8bF"
 )
 
+// DialClient returns a client to interact with the blockchain
 func DialClient(url string) (*ethclient.Client, error) {
 	once.Do(func() {
 		client, err = ethclient.Dial(url)
@@ -81,7 +82,7 @@ func deleteDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegist
 	fmt.Printf("Domain revoked: %s", tx.Hash().Hex())
 }
 
-func getCertificate(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string) (string, []byte, error) {
+func getCertificate(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string) (string, string, error) {
 	ip, certificate, err := instance.GetCertificate(&bind.CallOpts{}, domain)
 	if err != nil {
 		log.Fatalf("Impossibile recuperare il certificato: %v", err)
@@ -89,7 +90,7 @@ func getCertificate(auth *bind.TransactOpts, instance *domainRegistry.DomainRegi
 	return ip, certificate, err
 }
 
-func Request(client *ethclient.Client, choice int, name string, cert string) (string, []byte, error) {
+func Request(client *ethclient.Client, choice int, name string, cert string) (string, string, error) {
 	privateKey, err := ReadOrCreatePrivateKey(keyfile)
 	if err != nil {
 		log.Fatal(err)
@@ -147,5 +148,5 @@ func Request(client *ethclient.Client, choice int, name string, cert string) (st
 		}
 		return ip, certificate, err
 	}
-	return "", nil, nil
+	return "", "", nil
 }
