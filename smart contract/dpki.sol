@@ -7,8 +7,13 @@ contract DomainRegistry {
         string hostname;
         string ip;
         string certificate;
-        uint256 data;
+        uint256 expiryDate;
         address owner;
+    }
+
+    modifier onlyDomainOwner(string memory hostname) {
+        require(domains[hostname].owner == msg.sender, "Domain not owned by sender");
+        _;
     }
 
     mapping(string => Domain) public domains;
@@ -25,7 +30,7 @@ contract DomainRegistry {
         string calldata hostname,
         string calldata ip,
         string memory certificate,
-        uint256 data
+        uint256 expiryDate
     ) external {
         bytes memory hostnameBytes = bytes(hostname);
         uint256 dotCount = 0;
@@ -53,7 +58,7 @@ contract DomainRegistry {
             so it is possible to re-register the domain
         */ 
         if (bytes(domains[hostname].hostname).length > 0) {
-            require(domains[hostname].data <= block.timestamp, "Hostname already registered and not expired");
+            require(domains[hostname].expiryDate <= block.timestamp, "Hostname already registered and not expired");
             delete domains[hostname];
         }
 
@@ -66,10 +71,10 @@ contract DomainRegistry {
 
             // If the date is 0, the domain will never expire
             // otherwise, the domain will expire after the given number of seconds
-            data: data == 0 ? type(uint256).max : block.timestamp + data
+            expiryDate: expiryDate == 0 ? type(uint256).max : block.timestamp + expiryDate
         });
 
-        emit DomainCreated(hostname, ip, certificate, data, msg.sender);
+        emit DomainCreated(hostname, ip, certificate, expiryDate, msg.sender);
     }
 
     function _getParentDomain(bytes memory hostnameBytes) internal pure returns (string memory) {
@@ -91,52 +96,46 @@ contract DomainRegistry {
         string hostname,
         string ip,
         string certificate,
-        uint256 data
+        uint256 expiryDate
     );
 
     function updateDomain(
         string calldata hostname,
         string calldata ip,
         string memory certificate,
-        uint256 data
-    ) external {
+        uint256 expiryDate
+    ) external onlyDomainOwner(hostname) {
         require(bytes(domains[hostname].hostname).length > 0, "Domain not found");
-        require(domains[hostname].owner == msg.sender, "Domain not owned by sender");
 
         domains[hostname].ip = ip;
         domains[hostname].certificate = certificate;
-        domains[hostname].data = data == 0 ? type(uint256).max : block.timestamp + data;
+        domains[hostname].expiryDate = expiryDate == 0 ? type(uint256).max : block.timestamp + expiryDate;
 
-        emit DomainUpdated(hostname, ip, certificate, data);
+        emit DomainUpdated(hostname, ip, certificate, expiryDate);
     }
 
     event DomainDeleted(string hostname);
-    function deleteDomain(string calldata hostname) external {
-        require(domains[hostname].owner == msg.sender, "Domain not owned by sender");
-
+    function deleteDomain(string calldata hostname) external onlyDomainOwner(hostname) {
+        require(bytes(domains[hostname].hostname).length > 0, "Domain not found");
         delete domains[hostname];
 
         emit DomainDeleted(hostname);
     }
 
-    function getCertificate(string calldata hostname) external view returns (string memory, bytes memory) {
+    function getCertificate(string calldata hostname) external view returns (string memory, string memory) {
         Domain storage domain = domains[hostname];
 
         require(bytes(domain.hostname).length > 0, "Domain not found");
-        require(domain.data > block.timestamp, "Certificate has expired");
+        require(domain.expiryDate > block.timestamp, "Certificate has expired");
+
+        string memory certificate = domain.certificate;
 
         // If the certificate is odd, we need to add a 0 byte at the beginning
-        if (bytes(domain.certificate).length % 2 != 0) {
-            bytes memory certificateBytes = bytes(domain.certificate);
-            bytes memory adjustedCertificate = new bytes(certificateBytes.length + 1);
-            adjustedCertificate[0] = 0;
-            for (uint256 i = 0; i < certificateBytes.length; i++) {
-                adjustedCertificate[i + 1] = certificateBytes[i];
-            }
-            return ((domain.ip), adjustedCertificate);
-        }
+        if (bytes(certificate).length % 2 != 0) {
+        certificate = string(abi.encodePacked("0", certificate));
+    }
 
-        return ((domain.ip), bytes(domain.certificate));
+        return (domain.ip, certificate);
     }
 }
 
