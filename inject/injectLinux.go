@@ -19,7 +19,7 @@ func InjectPKI(name string, certPath string) error {
 	}
 	nssdbPath := filepath.Join(homeDir, ".pki", "nssdb")
 
-	cmd := exec.Command("certutil", "-A", "-d", "sql:"+nssdbPath, "-t", "C,,", "-n", name, "-i", certPath)
+	cmd := exec.Command("certutil", "-A", "-d", "sql:"+nssdbPath, "-t", "P,,", "-n", name, "-i", certPath)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
