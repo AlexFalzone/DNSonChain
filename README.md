@@ -1,7 +1,7 @@
 # Table of Contents
 
 - [Table of Contents](#table-of-contents)
-- [DPKI - Decentralized Public Key Infrastructure](#dpki---decentralized-public-key-infrastructure)
+- [DNSonChain](#DNSonChain)
   - [Requirements](#requirements)
   - [Installation](#installation)
     - [Option 1: Manual Installation](#option-1-manual-installation)
@@ -11,17 +11,17 @@
   - [License](#license)
   - [Contact](#contact)
 
-<a name="description"></a>
-# DPKI - Decentralized Public Key Infrastructure
+<a name="DNSonChain"></a>
+# DNSonChain
 
-DPKI is an implementation of decentralized public key infrastructure using Ethereum blockchain for storing and retrieving certificates. 
-Users can create certificates starting from a website with a special suffix like ".somet". 
+DNSonChain is an implementation of decentralized public key infrastructure using Ethereum blockchain for storing and retrieving certificates. 
+Users can create certificates starting from a website with a special suffix like ".chain". 
 The project leverages Ethereum to store and retrieve certificates and includes a mini DNS service that listens for requests. 
 When the DNS service receives a type A request with a ".somet" hostname, it queries the Ethereum blockchain for the certificate, 
 injects it into the certificate database, and communicates the information to the browser.
 
-The main components of the DPKI project are:
-- A custom DNS server that handles requests for ".somet" domains and forwards other requests to an external DNS server (e.g., Cloudflare's 1.1.1.1).
+The main components of the DNSonChain project are:
+- A custom DNS server that handles requests for ".chain" domains and forwards other requests to an external DNS server (e.g., Cloudflare's 1.1.1.1).
 - A utility for managing certificates, such as generating, revoking, and renewing certificates.
 - Functions to interact with the Ethereum blockchain using Infura or a local Ethereum node for certificate storage and retrieval.
 
@@ -40,8 +40,8 @@ The main components of the DPKI project are:
 
 1. Clone the repository
 ```
-git clone https://github.com/yourusername/DPKI.git
-cd DPKI
+git clone https://github.com/yourusername/DNSonChain.git
+cd DNSonChain
 ```
 
 2. Install dependencies
@@ -66,12 +66,12 @@ go mod tidy
 
 4. Build the project
 ```
-go build -o dpki main.go
+go build -o DNSonChain main.go
 ```
 
 5. Run the application
 ```
-sudo ./dpki
+sudo ./DNSonChain
 ```
 
 <a name="script-installation"></a>
