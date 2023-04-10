@@ -70,7 +70,7 @@ func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
 	hostnameFromDNS := extractHostnameFromDNS(msg)
 
 	// if the request does NOT have a .bit suffix then forward the request to the cloudflare DNS server
-	if !(strings.HasSuffix(hostnameFromDNS, ".somet")) {
+	if !(strings.HasSuffix(hostnameFromDNS, ".chain")) {
 		fmt.Println("DNS esterno:", hostnameFromDNS)
 
 		forwardRequest(conn, msg, addr)
