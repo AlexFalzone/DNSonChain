@@ -1,7 +1,7 @@
 # Table of Contents
 
 - [Table of Contents](#table-of-contents)
-- [DNSonChain](#DNSonChain)
+- [DNS-On-Chain](#DNSonChain)
   - [Requirements](#requirements)
   - [Installation](#installation)
     - [Option 1: Manual Installation](#option-1-manual-installation)
@@ -12,12 +12,12 @@
   - [Contact](#contact)
 
 <a name="DNSonChain"></a>
-# DNSonChain
+# DNS-On-Chain
 
 DNSonChain is an implementation of decentralized public key infrastructure using Ethereum blockchain for storing and retrieving certificates. 
 Users can create certificates starting from a website with a special suffix like ".chain". 
 The project leverages Ethereum to store and retrieve certificates and includes a mini DNS service that listens for requests. 
-When the DNS service receives a type A request with a ".somet" hostname, it queries the Ethereum blockchain for the certificate, 
+When the DNS service receives a type A request with a ".chain" hostname, it queries the Ethereum blockchain for the certificate, 
 injects it into the certificate database, and communicates the information to the browser.
 
 The main components of the DNSonChain project are:
