@@ -128,8 +128,8 @@ Please feel free to submit issues, fork the repository and send pull requests!
 <a name="license"></a>
 ## License
 
-This project is released under the GPL License.
+Currently there is no licence for the project.
 
 ## Contact
 
-If you have any questions or need more information, please open an issue on GitHub or contact the project owner.
+If you have any questions or need more information, please open an issue on GitHub or contact me.
