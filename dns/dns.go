@@ -17,7 +17,12 @@ const (
 	TypeNonA      = 3
 )
 
-// Forward the request to the DNS server and send the response back to the browser
+// forwardRequest forwards the DNS request to a specified DNS server and sends the response back to the client.
+//
+// Parameters:
+//   - conn: net.PacketConn representing the connection to send and receive data.
+//   - msg: *dns.Msg representing the DNS message to be forwarded.
+//   - addr: net.Addr representing the address of the client.
 func forwardRequest(conn net.PacketConn, msg *dns.Msg, addr net.Addr) {
 	fwd, err := dns.Exchange(msg, dnsServer)
 	if err != nil {
@@ -34,17 +39,38 @@ func forwardRequest(conn net.PacketConn, msg *dns.Msg, addr net.Addr) {
 	}
 }
 
-// Extract the hostname from the DNS request
+// extractHostnameFromDNS extracts the hostname from a DNS message.
+//
+// Parameters:
+//   - msg: *dns.Msg representing the DNS message.
+//
+// Returns:
+//   - string: The extracted hostname.
 func extractHostnameFromDNS(msg *dns.Msg) string {
 	hostname := msg.Question[0].Name
 	return strings.TrimSuffix(hostname, ".")
 }
 
-// Check if the DNS request is of type A or AAAA
+// isTypeAQuery checks if the DNS request is of type A or AAAA.
+//
+// Parameters:
+//   - msg: *dns.Msg representing the DNS message.
+//
+// Returns:
+//   - bool: true if the DNS request is of type A or AAAA, false otherwise.
 func isTypeAQuery(msg *dns.Msg) bool {
 	return len(msg.Question) > 0 && (msg.Question[0].Qtype == dns.TypeA || msg.Question[0].Qtype == dns.TypeAAAA)
 }
 
+// HandleRequest processes a DNS request and determines the hostname and request type.
+// If the request is not a type A or AAAA query, it forwards the request to the specified DNS server.
+//
+// Parameters:
+//   - conn: net.PacketConn representing the connection to send and receive data.
+//
+// Returns:
+//   - hostname: string representing the extracted hostname.
+//   - ex: int8 representing the request type (TypeASomet, TypeANonSomet, or TypeNonA).
 func HandleRequest(conn net.PacketConn) (hostname string, ex int8) {
 	buf := make([]byte, 1024)
 

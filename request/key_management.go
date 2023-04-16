@@ -8,7 +8,11 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-// Generate a new ecdsa private key
+// GenerateKeyPair generates a new ECDSA private key.
+//
+// Returns:
+//   - *ecdsa.PrivateKey: A pointer to the generated ECDSA private key.
+//   - error: An error if the operation fails, nil otherwise.
 func GenerateKeyPair() (*ecdsa.PrivateKey, error) {
 	key, err := crypto.GenerateKey()
 	if err != nil {
@@ -18,6 +22,14 @@ func GenerateKeyPair() (*ecdsa.PrivateKey, error) {
 	return key, nil
 }
 
+// ReadOrCreatePrivateKey reads an existing ECDSA private key from a file or generates a new one if the file does not exist.
+//
+// Parameters:
+//   - keyfile: string representing the path to the private key file.
+//
+// Returns:
+//   - *ecdsa.PrivateKey: A pointer to the ECDSA private key read from the file or newly generated.
+//   - error: An error if the operation fails, nil otherwise.
 func ReadOrCreatePrivateKey(keyfile string) (*ecdsa.PrivateKey, error) {
 	var privateKey *ecdsa.PrivateKey
 

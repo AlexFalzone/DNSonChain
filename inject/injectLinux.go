@@ -10,6 +10,14 @@ import (
 	"strings"
 )
 
+// InjectPKI injects a certificate into the NSS database.
+//
+// Parameters:
+//   - name: string representing the name for the certificate.
+//   - certPath: string representing the path to the certificate file.
+//
+// Returns:
+//   - error: An error if the operation fails, nil otherwise.
 func InjectPKI(name string, certPath string) error {
 
 	// Get the current user
@@ -29,7 +37,14 @@ func InjectPKI(name string, certPath string) error {
 
 }
 
-// InjectMozilla finds the default-release profile of Firefox and injects the certificate
+// InjectMozilla finds the default-release profile of Firefox and injects the certificate.
+//
+// Parameters:
+//   - name: string representing the name for the certificate.
+//   - certPath: string representing the path to the certificate file.
+//
+// Returns:
+//   - error: An error if the operation fails, nil otherwise.
 func InjectMozilla(name string, certPath string) error {
 
 	// Get the current user
@@ -67,6 +82,14 @@ func InjectMozilla(name string, certPath string) error {
 	return nil
 }
 
+// InjcetLinux injects a certificate into the NSS database and Firefox profile on Linux.
+//
+// Parameters:
+//   - hostname: string representing the hostname.
+//   - certPath: string representing the path to the certificate file.
+//
+// Returns:
+//   - error: An error if the operation fails, nil otherwise.
 func InjcetLinux(hostname string, certPath string) error {
 
 	errPKI := InjectPKI(hostname, certPath)
@@ -82,8 +105,14 @@ func InjcetLinux(hostname string, certPath string) error {
 	return nil
 }
 
-// Add a new line every 64 characters.
-// This is needed because the certificate is returned in a single line
+// fixCertificate adds a new line every 64 characters in the given string.
+// This is needed because the certificate is returned in a single line.
+//
+// Parameters:
+//   - cert: string representing the certificate content.
+//
+// Returns:
+//   - string: The modified certificate content.
 func fixCertificate(cert string) string {
 
 	fixedCert := strings.ReplaceAll(cert, " ", "\n")
@@ -91,6 +120,14 @@ func fixCertificate(cert string) string {
 	return fixedCert
 }
 
+// SaveCertToFile saves a certificate to a file.
+//
+// Parameters:
+//   - certContent: string representing the certificate content.
+//
+// Returns:
+//   - string: The path to the saved certificate file.
+//   - error: An error if the operation fails, nil otherwise.
 func SaveCertToFile(certContent string) (string, error) {
 	certDir := "tmp"
 	err := os.MkdirAll(certDir, 0755)

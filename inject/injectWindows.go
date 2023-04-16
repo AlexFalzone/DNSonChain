@@ -30,6 +30,13 @@ func SaveCertToFileWindows(certContent string) (string, error) {
 	return certPath, nil
 }
 
+// InjectTrustStore injects a certificate into the Windows trust store.
+//
+// Parameters:
+//   - certPath: string representing the path to the certificate file.
+//
+// Returns:
+//   - error: An error if the operation fails, nil otherwise.
 func InjectTrustStore(certPath string) error {
 	cmd := exec.Command("certutil.exe", "-user", "-addstore", "Root", certPath)
 
@@ -40,7 +47,14 @@ func InjectTrustStore(certPath string) error {
 	return nil
 }
 
-// InjectMozilla finds the default-release profile of Firefox and injects the certificate
+// InjectMozillaWindows finds the default-release profile of Firefox on Windows and injects the certificate.
+//
+// Parameters:
+//   - name: string representing the name for the certificate.
+//   - certPath: string representing the path to the certificate file.
+//
+// Returns:
+//   - error: An error if the operation fails, nil otherwise.
 func InjectMozillaWindows(name string, certPath string) error {
 
 	// Get the current user
@@ -78,6 +92,14 @@ func InjectMozillaWindows(name string, certPath string) error {
 	return nil
 }
 
+// InjectWindows injects a certificate into the Windows trust store and Firefox profile.
+//
+// Parameters:
+//   - hostname: string representing the hostname.
+//   - certPath: string representing the path to the certificate file.
+//
+// Returns:
+//   - error: An error if the operation fails, nil otherwise.
 func InjectWindows(hostname string, certPath string) error {
 	errTrustStore := InjectTrustStore(certPath)
 	if errTrustStore != nil {

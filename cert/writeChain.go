@@ -5,6 +5,12 @@ import (
 	"os"
 )
 
+// writeChain writes the end-entity certificate and the parent certificate to a file named chain.pem.
+// It reads the end-entity certificate from certHost.pem and the parent certificate from certIntermediate.pem,
+// and then writes them sequentially into chain.pem.
+//
+// Returns:
+//   - error: An error, if any occurs during the writing process.
 func writeChain() {
 	chainOut, err := os.Create("list/chain.pem")
 	if err != nil {
