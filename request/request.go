@@ -73,7 +73,8 @@ func createDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegist
 
 	tx, err := instance.CreateDomain(auth, domain, util.GetIP(), certificate, big.NewInt(expirationTimestamp))
 	if err != nil {
-		log.Fatalf("Impossibile creare il dominio: %v", err)
+		fmt.Println("Impossibile creare il dominio: ", err)
+		return
 	}
 	fmt.Printf("Domain created: %s", tx.Hash().Hex())
 }
@@ -91,7 +92,8 @@ func updateDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegist
 
 	tx, err := instance.UpdateDomain(auth, domain, util.GetIP(), certificate, big.NewInt(expirationTimestamp))
 	if err != nil {
-		log.Fatalf("Impossibile aggiornare il dominio: %v", err)
+		fmt.Println("Impossibile aggiornare il dominio: ", err)
+		return
 	}
 	fmt.Printf("Domain updated: %s", tx.Hash().Hex())
 }
@@ -107,7 +109,8 @@ func updateDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegist
 func deleteDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string) {
 	tx, err := instance.DeleteDomain(auth, domain)
 	if err != nil {
-		log.Fatalf("Impossibile revocare il dominio: %v", err)
+		fmt.Println("Impossibile revocare il dominio: ", err)
+		return
 	}
 	fmt.Printf("Domain revoked: %s", tx.Hash().Hex())
 }
@@ -128,7 +131,8 @@ func deleteDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegist
 func getCertificate(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string) (string, string, error) {
 	ip, certificate, err := instance.GetCertificate(&bind.CallOpts{}, domain)
 	if err != nil {
-		log.Fatalf("Impossibile recuperare il certificato: %v", err)
+		fmt.Println("Impossibile recuperare il certificato: ", err)
+		return "", "", err
 	}
 	return ip, certificate, err
 }
