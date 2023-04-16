@@ -5,10 +5,13 @@ import (
 	"net"
 	"runtime"
 	"sync"
-	"test/dns"
+	"test/dnsHelper"
 	"test/inject"
 	"test/request"
 	"test/util"
+
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/miekg/dns"
 )
 
 /*
@@ -20,6 +23,7 @@ func main() {
 
 	var url string
 	var cert string
+	var ip string
 	var errRequest error
 
 	for {
@@ -63,9 +67,9 @@ func main() {
 			defer conn.Close()
 
 			for {
-				hostname, ex := dns.HandleRequest(conn)
+				hostname, ex, msg, addr := dnsHelper.HandleRequest(conn)
 
-				if ex == dns.TypeASomet {
+				if ex == dnsHelper.TypeASomet {
 
 					if choiceInt == 1 { //Infura
 						url = "https://sepolia.infura.io/v3/d777809793694d9dacf5e1f94bfec65a"
@@ -83,13 +87,37 @@ func main() {
 					// Get certificate
 					go func() {
 						defer wg.Done()
-						_, cert, errRequest = request.Request(client, 4, hostname, "")
+						// In this case the certificate is not generated, but it is requested from the blockchain
+						// and the expiration date is not specified
+						ip, cert, errRequest = request.Request(client, 4, hostname, "", 0)
 						if errRequest != nil {
 							fmt.Println(err)
 						}
+						fmt.Println("IP address:", ip)
 					}()
 
+					// Wait for the request to be completed
 					wg.Wait()
+
+					if errRequest == nil {
+						// Create a DNS response with the IP address obtained from the blockchain
+						response := new(dns.Msg)
+						response.SetReply(msg) // Use the original DNS request message `msg` from the HandleRequest function
+						response.Authoritative = true
+						response.Answer = append(response.Answer, &dns.A{
+							Hdr: dns.RR_Header{Name: msg.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
+							A:   net.ParseIP(ip),
+						})
+
+						fmt.Println("IP address PARSED:", ip)
+
+						// Send the DNS response with the IP address to the client
+						responseBytes, _ := response.Pack()
+						_, err = conn.WriteTo(responseBytes, addr)
+						if err != nil {
+							log.Error("Error writing DNS response", "err", err)
+						}
+					}
 
 					if errRequest == nil {
 						// Remove the first character of the certificate (it's a "0")
