@@ -102,15 +102,24 @@ func main() {
 					switch runtime.GOOS {
 					case "windows":
 						fmt.Println("Windows")
-					case "linux":
-						fmt.Println("Linux")
-
-						certpath, err := inject.SaveCertToFile(cert)
+						certPathWindows, err := inject.SaveCertToFileWindows(cert)
 						if err != nil {
 							fmt.Println(err)
 						}
 
-						err = inject.InjcetLinux(hostname, certpath)
+						err = inject.InjectWindows(hostname, certPathWindows)
+						if err != nil {
+							fmt.Println(err)
+						}
+					case "linux":
+						fmt.Println("Linux")
+
+						certpathLinux, err := inject.SaveCertToFile(cert)
+						if err != nil {
+							fmt.Println(err)
+						}
+
+						err = inject.InjcetLinux(hostname, certpathLinux)
 						if err != nil {
 							fmt.Println(err)
 						}
