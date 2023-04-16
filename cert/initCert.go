@@ -23,6 +23,16 @@ const (
 	rsaBits = 2048
 )
 
+// GenerateCert generates a new end-entity certificate and private key signed by the parent certificate.
+// It takes a domain name as input and returns the generated x509.Certificate, the private key, and an error if any occurs.
+//
+// Parameters:
+//   - name: string representing the domain name.
+//
+// Returns:
+//   - []byte: The generated certificate in bytes.
+//   - any: The generated private key.
+//   - error: An error, if any occurs during the certificate and private key generation.
 func GenerateCert(name string /*choice int*/) ([]byte, any, error) {
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)

@@ -13,6 +13,16 @@ import (
 	"time"
 )
 
+// GetParent generates a new parent certificate and private key signed by the grandparent certificate.
+// It takes a domain name as input and returns the generated x509.Certificate and the private key.
+//
+// Parameters:
+//   - name: string representing the domain name.
+//
+// Returns:
+//   - x509.Certificate: The generated parent certificate.
+//   - any: The generated private key.
+//   - error: An error, if any occurs during the certificate and private key generation.
 func GetParent(name string) (x509.Certificate, any) {
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
@@ -66,26 +76,6 @@ func GetParent(name string) (x509.Certificate, any) {
 		log.Fatalf("Failed to write data to certIntermediate.pem: %v", err)
 	}
 	log.Print("wrote certIntermediate.pem\n")
-
-	//Create a file called keyIntermediate.pem
-	keyOut, err := os.OpenFile("list/keyIntermediate.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Fatalf("Failed to open keyIntermediate.pem for writing: %v", err)
-	}
-	defer keyOut.Close()
-
-	//convert the private key to PKCS8 format
-	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
-	if err != nil {
-		log.Fatalf("Unable to marshal private key: %v", err)
-	}
-
-	//Write the private key to the file
-	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		log.Fatalf("Failed to write data to keyIntermediate.pem: %v", err)
-	}
-
-	log.Print("wrote keyIntermediate.pem\n")
 
 	return template, priv
 }

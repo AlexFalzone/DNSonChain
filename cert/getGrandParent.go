@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/pem"
 	"log"
 	"math/big"
 	"os"
@@ -14,6 +13,16 @@ import (
 	"test/util"
 )
 
+// GetGrandParent generates a new grandparent certificate and private key.
+// It takes a domain name as input and returns the generated x509.Certificate and the private key.
+//
+// Parameters:
+//   - name: string representing the domain name.
+//
+// Returns:
+//   - x509.Certificate: The generated grandparent certificate.
+//   - any: The generated private key.
+//   - error: An error, if any occurs during the certificate and private key generation.
 func GetGrandParent(name string) (x509.Certificate, any) {
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
@@ -47,7 +56,7 @@ func GetGrandParent(name string) (x509.Certificate, any) {
 		},
 	}
 
-	certificate, err := x509.CreateCertificate(rand.Reader, &template, &template, util.PublicKey(priv), priv)
+	_, err = x509.CreateCertificate(rand.Reader, &template, &template, util.PublicKey(priv), priv)
 	if err != nil {
 		log.Fatalf("Failed to create Parent certificate: %v", err)
 	}
@@ -58,40 +67,6 @@ func GetGrandParent(name string) (x509.Certificate, any) {
 			log.Fatal(err)
 		}
 	}
-
-	certOut, err := os.Create("list/certRoot.pem")
-	if err != nil {
-		log.Fatalf("Failed to open certRoot.pem for writing: %v", err)
-	}
-
-	defer certOut.Close()
-
-	//Write the certificate to the file
-	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: certificate}); err != nil {
-		log.Fatalf("Failed to write data to certRoot.pem: %v", err)
-	}
-	log.Print("wrote aia cert\n")
-
-	//open (or create) a file called keyRoot.pem
-	keyOut, err := os.OpenFile("list/keyRoot.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Fatalf("Failed to open keyRoot.pem for writing: %v", err)
-		//return
-	}
-	defer keyOut.Close()
-
-	//convert the private key to PKCS#8 format
-	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
-	if err != nil {
-		log.Fatalf("Unable to marshal private key: %v", err)
-	}
-
-	//write the private key to the file
-	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		log.Fatalf("Failed to write data to keyRoot.pem: %v", err)
-	}
-
-	log.Print("wrote keyRoot.pem\n")
 
 	return template, priv
 }
