@@ -114,8 +114,16 @@ func InjcetLinux(hostname string, certPath string) error {
 // Returns:
 //   - string: The modified certificate content.
 func fixCertificate(cert string) string {
+	header := "-----BEGIN CERTIFICATE-----"
+	footer := "-----END CERTIFICATE-----"
+
+	// Trim the header and footer
+	cert = strings.TrimPrefix(cert, header)
+	cert = strings.TrimSuffix(cert, footer)
 
 	fixedCert := strings.ReplaceAll(cert, " ", "\n")
+
+	fixedCert = header + fixedCert + footer
 
 	return fixedCert
 }
