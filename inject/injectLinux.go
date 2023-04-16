@@ -19,7 +19,7 @@ func InjectPKI(name string, certPath string) error {
 	}
 	nssdbPath := filepath.Join(homeDir, ".pki", "nssdb")
 
-	cmd := exec.Command("certutil", "-A", "-d", "sql:"+nssdbPath, "-t", "P,,", "-n", name, "-i", certPath)
+	cmd := exec.Command("certutil", "-A", "-d", "sql:"+nssdbPath, "-t", "Pu,,", "-n", name, "-i", certPath)
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -58,29 +58,13 @@ func InjectMozilla(name string, certPath string) error {
 		log.Fatal("Impossibile trovare il profilo Firefox")
 	}
 
-	cmd := exec.Command("certutil", "-A", "-d", "sql:"+profilePath, "-t", "C,,", "-n", name, "-i", certPath)
+	cmd := exec.Command("certutil", "-A", "-d", "sql:"+profilePath, "-t", "Cu,,", "-n", name, "-i", certPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to execute command: %v\nOutput: %s", err, output)
 	}
 
 	return nil
-}
-
-func SaveCertToFile(certContent string) (string, error) {
-	certDir := "tmp"
-	err := os.MkdirAll(certDir, 0755)
-	if err != nil {
-		return "", fmt.Errorf("failed to create certReq directory: %v", err)
-	}
-
-	certPath := filepath.Join(certDir, "tmp.pem")
-	err = os.WriteFile(certPath, []byte(certContent), 0644)
-	if err != nil {
-		return "", fmt.Errorf("failed to write certificate to file: %v", err)
-	}
-
-	return certPath, nil
 }
 
 func InjcetLinux(hostname string, certPath string) error {
@@ -96,4 +80,33 @@ func InjcetLinux(hostname string, certPath string) error {
 	}
 
 	return nil
+}
+
+// Add a new line every 64 characters.
+// This is needed because the certificate is returned in a single line
+func fixCertificate(cert string) string {
+
+	fixedCert := strings.ReplaceAll(cert, " ", "\n")
+
+	return fixedCert
+}
+
+func SaveCertToFile(certContent string) (string, error) {
+	certDir := "tmp"
+	err := os.MkdirAll(certDir, 0755)
+	if err != nil {
+		return "", fmt.Errorf("failed to create certReq directory: %v", err)
+	}
+
+	certPath := filepath.Join(certDir, "tmp.pem")
+
+	// Before writing the certificate to file, add a new line every 64 characters
+	certContent = fixCertificate(certContent)
+
+	err = os.WriteFile(certPath, []byte(certContent), 0644)
+	if err != nil {
+		return "", fmt.Errorf("failed to write certificate to file: %v", err)
+	}
+
+	return certPath, nil
 }
