@@ -29,7 +29,7 @@ The main components of the DNSonChain project are:
 ## Requirements
 
 - [Go](https://golang.org/doc/install) programming language (version 1.16 or later)
-- libnss3-tools (on linux, very often it is already installed)
+- libnss3-tools (on linux, very often it is already installed. on Windows, you can download it from here: [certutil](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip) and the [.asc](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip.asc))
 - An Execution layer client for the Ethereum Blockchain (currently supported: [Geth](https://geth.ethereum.org/downloads/))
 
 <a name="installation"></a>
@@ -57,19 +57,32 @@ cd DNSonChain
   ```
   sudo dnf install -y dnsmasq libnss3-tools golang
   ```
-
-3. Initialize the Go module and install dependencies
+3. Modify related files
+- Create a 'chain.conf' file in the '/etc/dnsmasq.d' directory and add the following line:
+  ```
+  server=/chain/127.0.0.1#5354
+  ```
+- Modify the '/etc/NetworkManager/NetworkManager.conf' file to add the following line under the '[main]' section:
+  ```
+  dns=dnsmasq
+  ```
+- Restart the dnsmasq service:
+  ```
+  sudo service dnsmasq restart
+  ```
+  
+4. Initialize the Go module and install dependencies
 ```
 go mod init test
 go mod tidy
 ```
 
-4. Build the project
+5. Build the project
 ```
 go build -o DNSonChain main.go
 ```
 
-5. Run the application
+6. Run the application
 ```
 sudo ./DNSonChain
 ```
@@ -80,46 +93,18 @@ sudo ./DNSonChain
 1. Save the provided script as `install.sh` in the project directory.
 2. Give the script execution permissions:
    ```
-   chmod +x install.sh
+   chmod +x scripLinux.sh
    ```
 3. Run the script:
    ```
-   ./install.sh
+   ./scripLinux.sh
    ```
-   The script will automatically detect your package manager, install dependencies, build the project, and prompt you to run the application.
+   The script will automatically detect your package manager, install dependencies, modify related files, build the project, and prompt you to run the application.
 
 <a name="usage"></a>
 ## Usage
 
 There's a utility included that displays available entries, just run the program.
-
-**Note**: Currently, to run the program, you need to stop the `systemd-resolved` service (or similar) and modify the `resolv.conf` configuration file (or similar). In the future, this won't be necessary as `dnsmasq` will be used.
-
-1. Stop the `systemd-resolved` service:
-   ```
-   sudo service systemd-resolved stop
-   ```
-
-2. Modify the `resolv.conf` configuration file:
-   - Open the file with a text editor (e.g., `nano` or `vim`):
-     ```
-     sudo nano /etc/resolv.conf
-     ```
-   - Replace the existing nameserver(s) with the IP address of your custom DNS server (e.g., `127.0.0.1`).
-   - Save the changes and close the file.
-
-3. Run the DPKI application:
-   ```
-   sudo ./dpki
-   ```
-
-4. To restore your original DNS settings, restart the `systemd-resolved` service with the following command:
-   ```
-   sudo service systemd-resolved start
-   ```
-   The `resolv.conf` file will be automatically restored to its original state during the restart of the `systemd-resolved` service.
-
-Remember that these steps are temporary and will be changed once `dnsmasq` is implemented.
 
 ## Contributing
 
