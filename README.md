@@ -90,7 +90,14 @@ sudo ./DNSonChain
 <a name="script-installation"></a>
 ### Option 2: Automated Installation using the Script
 
-1. Save the provided script as `install.sh` in the project directory.
+ The script will automatically detect your package manager, install dependencies, modify related files, build the project, and prompt you to run the application.
+
+1. Clone the repository
+   ```
+   git clone https://github.com/yourusername/DNSonChain.git
+   cd DNSonChain
+   ```
+
 2. Give the script execution permissions:
    ```
    chmod +x scripLinux.sh
@@ -99,7 +106,6 @@ sudo ./DNSonChain
    ```
    ./scripLinux.sh
    ```
-   The script will automatically detect your package manager, install dependencies, modify related files, build the project, and prompt you to run the application.
 
 <a name="usage"></a>
 ## Usage
