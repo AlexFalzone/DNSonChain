@@ -25,6 +25,8 @@ The main components of the DNSonChain project are:
 - A utility for managing certificates, such as generating, revoking, and renewing certificates.
 - Functions to interact with the Ethereum blockchain using Infura or a local Ethereum node for certificate storage and retrieval.
 
+**Note**: the smart contract is included here for completeness only
+
 <a name="requirements"></a>
 ## Requirements
 
