@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"test/cert"
 	"test/util"
+	"time"
 )
 
 // CertificatesManagement is a helper function for managing certificates.
@@ -23,8 +24,25 @@ func CertificatesManagement(choice int, url string) {
 		fmt.Println("Insert the name of the certificate to update:")
 		fmt.Scan(&name)
 		fmt.Println("Insert the expiration date in the format yyyy-mm-dd:")
+		fmt.Println("Insert 0 for no expiration date.")
+		fmt.Println("Expiration date is the expiration of the domain name in the blockchain. Not the certificate.")
 		fmt.Scan(&expirationDate)
-	case 2: // Revoke certificate
+
+		// Check if the expiration date is in the correct format
+		layout := "2006-01-02"
+		parsedDate, err := time.Parse(layout, expirationDate)
+		if err != nil {
+			fmt.Println("Error: Invalid date format. Please use yyyy-mm-dd format.")
+			return
+		}
+
+		// Check if the expiration date is in the future
+		now := time.Now()
+		if !parsedDate.After(now) && expirationDate != "0" {
+			fmt.Println("Error: The expiration date should be in the future.")
+			return
+		}
+
 		fmt.Println("Insert the name of the certificate to revoke:")
 		fmt.Scan(&name)
 	}
