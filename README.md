@@ -31,8 +31,8 @@ The main components of the DNSonChain project are:
 ## Requirements
 
 - [Go](https://golang.org/doc/install) programming language (version 1.16 or later)
-- libnss3-tools (on linux, very often it is already installed. on Windows, you can download it from here: [certutil](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip) and the [.asc](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip.asc))
-- An Execution layer client for the Ethereum Blockchain (currently supported: [Geth](https://geth.ethereum.org/downloads/))
+- libnss3-tools (on linux, very often it is already installed. on Windows, you can download it from here: [certutil](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip) and the [.asc](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip.asc)
+- An Execution client should be sufficient for a light node. Otherwise you need a consensus client. If your client uses port 8545, it is already supported.
 
 <a name="installation"></a>
 ## Installation
