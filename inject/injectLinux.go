@@ -2,7 +2,6 @@ package inject
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -50,14 +49,14 @@ func InjectMozilla(name string, certPath string) error {
 	// Get the current user
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to get current user: %v", err)
 	}
 
 	// Get the path of the Firefox profile
 	firefoxProfilesPath := filepath.Join(usr.HomeDir, ".mozilla", "firefox")
 	profiles, err := os.ReadDir(firefoxProfilesPath)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to read directory: %v", err)
 	}
 
 	var profilePath string
@@ -70,7 +69,7 @@ func InjectMozilla(name string, certPath string) error {
 	}
 
 	if profilePath == "" {
-		log.Fatal("Impossibile trovare il profilo Firefox")
+		return fmt.Errorf("failed to find the default-release profile")
 	}
 
 	cmd := exec.Command("certutil", "-A", "-d", "sql:"+profilePath, "-t", "Cu,,", "-n", name, "-i", certPath)
