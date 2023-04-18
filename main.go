@@ -10,7 +10,6 @@ import (
 	"test/request"
 	"test/util"
 
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/miekg/dns"
 )
 
@@ -80,6 +79,7 @@ func main() {
 					client, err := request.DialClient(url)
 					if err != nil {
 						fmt.Println(err)
+						return
 					}
 
 					var wg sync.WaitGroup
@@ -93,35 +93,14 @@ func main() {
 						if errRequest != nil {
 							fmt.Println(err)
 						}
-						fmt.Println("IP address:", ip)
 					}()
 
 					// Wait for the request to be completed
 					wg.Wait()
 
+					// Remove the first character of the certificate (it's a "0")
+					// because the blockchain returns the certificate with a "0" at the beginning
 					if errRequest == nil {
-						// Create a DNS response with the IP address obtained from the blockchain
-						response := new(dns.Msg)
-						response.SetReply(msg) // Use the original DNS request message `msg` from the HandleRequest function
-						response.Authoritative = true
-						response.Answer = append(response.Answer, &dns.A{
-							Hdr: dns.RR_Header{Name: msg.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
-							A:   net.ParseIP(ip),
-						})
-
-						fmt.Println("IP address PARSED:", ip)
-
-						// Send the DNS response with the IP address to the client
-						responseBytes, _ := response.Pack()
-						_, err = conn.WriteTo(responseBytes, addr)
-						if err != nil {
-							log.Error("Error writing DNS response", "err", err)
-						}
-					}
-
-					if errRequest == nil {
-						// Remove the first character of the certificate (it's a "0")
-						// because the blockchain returns the certificate with a "0" at the beginning
 						cert = cert[1:]
 						fmt.Println("Richiesta ricevuta:", cert)
 					}
@@ -133,11 +112,32 @@ func main() {
 						certPathWindows, err := inject.SaveCertToFileWindows(cert)
 						if err != nil {
 							fmt.Println(err)
+							return
 						}
 
-						err = inject.InjectWindows(hostname, certPathWindows)
-						if err != nil {
+						errInjectWindows := inject.InjectWindows(hostname, certPathWindows)
+						if errInjectWindows != nil {
 							fmt.Println(err)
+						}
+
+						// Send the DNS response with the IP address to the client
+						// AFTER the certificate has been injected
+						if errRequest == nil && errInjectWindows == nil {
+							// Create a DNS response with the IP address obtained from the blockchain
+							response := new(dns.Msg)
+							response.SetReply(msg) // Use the original DNS request message `msg` from the HandleRequest function
+							response.Authoritative = true
+							response.Answer = append(response.Answer, &dns.A{
+								Hdr: dns.RR_Header{Name: msg.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
+								A:   net.ParseIP(ip),
+							})
+
+							// Send the DNS response with the IP address to the client
+							responseBytes, _ := response.Pack()
+							_, err = conn.WriteTo(responseBytes, addr)
+							if err != nil {
+								fmt.Println("error sending DNS response: ", err)
+							}
 						}
 					case "linux":
 						fmt.Println("Linux")
@@ -145,11 +145,32 @@ func main() {
 						certpathLinux, err := inject.SaveCertToFile(cert)
 						if err != nil {
 							fmt.Println(err)
+							return
 						}
 
-						err = inject.InjcetLinux(hostname, certpathLinux)
-						if err != nil {
+						errInjcetLinux := inject.InjcetLinux(hostname, certpathLinux)
+						if errInjcetLinux != nil {
 							fmt.Println(err)
+						}
+
+						// Send the DNS response with the IP address to the client
+						// AFTER the certificate has been injected
+						if errRequest == nil && errInjcetLinux == nil {
+							// Create a DNS response with the IP address obtained from the blockchain
+							response := new(dns.Msg)
+							response.SetReply(msg) // Use the original DNS request message `msg` from the HandleRequest function
+							response.Authoritative = true
+							response.Answer = append(response.Answer, &dns.A{
+								Hdr: dns.RR_Header{Name: msg.Question[0].Name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
+								A:   net.ParseIP(ip),
+							})
+
+							// Send the DNS response with the IP address to the client
+							responseBytes, _ := response.Pack()
+							_, err = conn.WriteTo(responseBytes, addr)
+							if err != nil {
+								fmt.Println("error sending DNS response: ", err)
+							}
 						}
 					}
 				}
