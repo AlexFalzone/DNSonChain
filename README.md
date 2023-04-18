@@ -1,11 +1,10 @@
 # Table of Contents
 
 - [Table of Contents](#table-of-contents)
-- [DNS-On-Chain](#DNSonChain)
+- [DNS-On-Chain](#dns-on-chain)
   - [Requirements](#requirements)
   - [Installation](#installation)
     - [Option 1: Manual Installation](#option-1-manual-installation)
-    - [Option 2: Automated Installation using the Script](#option-2-automated-installation-using-the-script)
   - [Usage](#usage)
   - [Contributing](#contributing)
   - [License](#license)
@@ -68,23 +67,27 @@ cd DNSonChain
   ```
   dns=dnsmasq
   ```
+- Modify the '/etc/resolv.conf' file to add the following line:
+  *(You can delete the other lines if you want)*
+  ```
+  nameserver 127.0.0.1
 - Restart the dnsmasq service:
   ```
   sudo service dnsmasq restart
   ```
   
-4. Initialize the Go module and install dependencies
+1. Initialize the Go module and install dependencies
 ```
 go mod init test
 go mod tidy
 ```
 
-5. Build the project
+1. Build the project
 ```
 go build -o DNSonChain main.go
 ```
 
-6. Run the application
+1. Run the application
 ```
 sudo ./DNSonChain
 ```
