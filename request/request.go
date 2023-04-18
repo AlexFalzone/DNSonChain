@@ -4,15 +4,11 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"log"
 	"math/big"
-	"strings"
 	"sync"
 	"test/domainRegistry"
 	"test/util"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -131,71 +127,9 @@ func deleteDomain(auth *bind.TransactOpts, instance *domainRegistry.DomainRegist
 func getCertificate(auth *bind.TransactOpts, instance *domainRegistry.DomainRegistry, domain string) (string, string, error) {
 	ip, certificate, err := instance.GetCertificate(&bind.CallOpts{}, domain)
 	if err != nil {
-		fmt.Println("Impossibile recuperare il certificato: ", err)
-		return "", "", err
+		return "", "", fmt.Errorf("impossible to get certificate: %v", err)
 	}
 	return ip, certificate, err
-}
-
-// estimateGas estimates the gas required to perform a specific action on the domain registry contract.
-// It takes the transaction options, the Ethereum client, the contract address, the function name,
-// and a variadic list of arguments for the function. It returns the estimated gas as a uint64 and an error, if any occurs.
-//
-// Parameters:
-//   - auth: *bind.TransactOpts representing the transaction options.
-//   - client: *ethclient.Client instance representing the Ethereum client.
-//   - address: common.Address representing the contract address.
-//   - functionName: The name of the contract function to estimate gas for.
-//   - args: A variadic list of arguments for the specified function.
-//
-// Returns:
-//   - uint64: The estimated gas for the specified function call.
-//   - error: An error, if any occurs during the gas estimation process.
-func estimateGas(auth *bind.TransactOpts, client *ethclient.Client, address common.Address, functionName string, args ...interface{}) (uint64, error) {
-	gasAuth := *auth
-	gasAuth.GasLimit = 0
-
-	_, err := domainRegistry.NewDomainRegistry(address, client)
-	if err != nil {
-		return 0, err
-	}
-
-	var gasEstimate uint64
-	var input abi.Method
-
-	contractABI, err := abi.JSON(strings.NewReader(domainRegistry.DomainRegistryABI))
-	if err != nil {
-		return 0, err
-	}
-
-	found := false
-	for name, method := range contractABI.Methods {
-		if name == functionName {
-			input = method
-			found = true
-			break
-		}
-	}
-	if !found {
-		return 0, fmt.Errorf("unknown function name: %s", functionName)
-	}
-
-	encodedArgs, err := input.Inputs.Pack(args...)
-	if err != nil {
-		return 0, err
-	}
-
-	callMsg := ethereum.CallMsg{
-		From: gasAuth.From,
-		To:   &address,
-		Data: append(input.ID, encodedArgs...),
-	}
-	gasEstimate, err = client.EstimateGas(context.Background(), callMsg)
-	if err != nil {
-		return 0, err
-	}
-
-	return gasEstimate, nil
 }
 
 // Request performs various actions on the domain registry contract based on the user's choice.
@@ -220,35 +154,35 @@ func estimateGas(auth *bind.TransactOpts, client *ethclient.Client, address comm
 func Request(client *ethclient.Client, choice int, name string, cert string, expirationTimestamp int64) (string, string, error) {
 	privateKey, err := ReadOrCreatePrivateKey(keyfile)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", fmt.Errorf("impossible to read or create the private key: %v", err)
 	}
 
 	// We then need to extract the Ethereum address from the private key
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
-		log.Fatal("error casting public key to ECDSA")
+		return "", "", fmt.Errorf("error casting public key to ECDSA")
 	}
 
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", fmt.Errorf("impossible to get the nonce: %v", err)
 	}
 
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		return "", "", fmt.Errorf("impossible to get the gas price: %v", err)
 	}
 
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		return "", "", fmt.Errorf("impossible to get the chain ID: %v", err)
 	}
 
 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", fmt.Errorf("impossible to get the transaction authorizer: %v", err)
 	}
 
 	auth.Nonce = big.NewInt(int64(nonce))
@@ -258,37 +192,19 @@ func Request(client *ethclient.Client, choice int, name string, cert string, exp
 	address := common.HexToAddress(contractAdress)
 	instance, err := domainRegistry.NewDomainRegistry(address, client)
 	if err != nil {
-		log.Fatal(err)
+		return "", "", fmt.Errorf("impossible to get the contract instance: %v", err)
 	}
 
 	if choice == 1 { //create certificate
-		estimatedGas, err := estimateGas(auth, client, address, "createDomain", name, util.GetIP(), cert, big.NewInt(expirationTimestamp))
-		if err != nil {
-			log.Fatalf("Failed to estimate gas: %v", err)
-		}
-		auth.GasLimit = estimatedGas // Use the estimated gas limit
-
 		createDomain(auth, instance, name, cert, expirationTimestamp)
 	} else if choice == 2 { //revoke certificate
-		estimatedGas, err := estimateGas(auth, client, address, "deleteDomain", name)
-		if err != nil {
-			log.Fatalf("Failed to estimate gas: %v", err)
-		}
-		auth.GasLimit = estimatedGas // Use the estimated gas limit
-
 		deleteDomain(auth, instance, name)
 	} else if choice == 3 { //update certificate
-		estimatedGas, err := estimateGas(auth, client, address, "updateDomain", name, util.GetIP(), cert, big.NewInt(expirationTimestamp))
-		if err != nil {
-			log.Fatalf("Failed to estimate gas: %v", err)
-		}
-		auth.GasLimit = estimatedGas // Use the estimated gas limit
-
 		updateDomain(auth, instance, name, cert, expirationTimestamp)
 	} else if choice == 4 { //get certificate
 		ip, certificate, err := getCertificate(auth, instance, name)
 		if err != nil {
-			log.Fatal(err)
+			return "", "", fmt.Errorf("impossible to get the certificate: %v", err)
 		}
 		return ip, certificate, err
 	}
