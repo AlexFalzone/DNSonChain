@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"fmt"
 	"log"
 	"math/big"
 	"os"
@@ -37,7 +38,7 @@ func GenerateCert(name string /*choice int*/) ([]byte, any, error) {
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil, fmt.Errorf("failed to generate private key: %v", err)
 	}
 
 	//it is necessary for rsa!
@@ -51,7 +52,7 @@ func GenerateCert(name string /*choice int*/) ([]byte, any, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		log.Fatalf("Failed to generate serial number: %v", err)
+		return nil, nil, fmt.Errorf("failed to generate serial number: %v", err)
 	}
 
 	//call getParent to get the parent certificate and the parent private key
@@ -71,34 +72,34 @@ func GenerateCert(name string /*choice int*/) ([]byte, any, error) {
 		DNSNames:              []string{name},
 		Subject: pkix.Name{
 			CommonName:   name,
-			SerialNumber: "DPKI TLS Certificate",
+			SerialNumber: "DNSonChain TLS Certificate",
 		},
 	}
 
 	//create the certificate using the parent certificate and the parent private key
 	certificate, err := x509.CreateCertificate(rand.Reader, &template, &parent, util.PublicKey(priv), parentPriv)
 	if err != nil {
-		log.Fatal("failed to create certificate: ", err)
+		return nil, nil, fmt.Errorf("failed to create certificate: %v", err)
 	}
 
 	//create a file called cert.pem
 	certOut, err := os.Create("list/certHost.pem")
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil, fmt.Errorf("failed to open certHost.pem for writing: %v", err)
 	}
 
 	defer certOut.Close()
 
 	//write the certificate into cert.pem
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: certificate}); err != nil {
-		log.Fatal(err)
+		return nil, nil, fmt.Errorf("failed to write data to certHost.pem: %v", err)
 	}
 	log.Print("written certHost.pem\n")
 
 	//create a file called keyHost.pem
 	keyOut, err := os.OpenFile("list/keyHost.pem", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Fatalf("Failed to open keyHost.pem for writing: %v", err)
+		return nil, nil, fmt.Errorf("failed to open keyHost.pem for writing: %v", err)
 	}
 
 	defer keyOut.Close()
@@ -106,12 +107,12 @@ func GenerateCert(name string /*choice int*/) ([]byte, any, error) {
 	//convert the private key into PKCS#8 format
 	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
-		log.Fatalf("Unable to marshal private key: %v", err)
+		return nil, nil, fmt.Errorf("unable to marshal private key: %v", err)
 	}
 
 	//write the private key into key.pem
 	if err := pem.Encode(keyOut, &pem.Block{Type: "PRIVATE KEY", Bytes: privBytes}); err != nil {
-		log.Fatalf("Failed to write data to keyHost.pem: %v", err)
+		return nil, nil, fmt.Errorf("failed to write data to keyHost.pem: %v", err)
 	}
 	log.Print("wrote keyHost.pem\n")
 

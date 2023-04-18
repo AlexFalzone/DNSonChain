@@ -52,7 +52,7 @@ func GetGrandParent(name string) (x509.Certificate, any) {
 		IsCA:                  true,
 		Subject: pkix.Name{
 			CommonName:   name + " Root CA",
-			SerialNumber: "DPKI TLS Certificate",
+			SerialNumber: "DNSonChain TLS Certificate",
 		},
 	}
 
