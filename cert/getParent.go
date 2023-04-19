@@ -5,11 +5,11 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"dnsonchain/util"
 	"encoding/pem"
 	"log"
 	"math/big"
 	"os"
-	"test/util"
 	"time"
 )
 

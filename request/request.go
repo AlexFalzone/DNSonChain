@@ -3,11 +3,11 @@ package request
 import (
 	"context"
 	"crypto/ecdsa"
+	"dnsonchain/domainRegistry"
+	"dnsonchain/util"
 	"fmt"
 	"math/big"
 	"sync"
-	"test/domainRegistry"
-	"test/util"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"

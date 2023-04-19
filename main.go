@@ -1,14 +1,14 @@
 package main
 
 import (
+	"dnsonchain/dnsHelper"
+	"dnsonchain/inject"
+	"dnsonchain/request"
+	"dnsonchain/util"
 	"fmt"
 	"net"
 	"runtime"
 	"sync"
-	"test/dnsHelper"
-	"test/inject"
-	"test/request"
-	"test/util"
 
 	"github.com/miekg/dns"
 )

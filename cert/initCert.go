@@ -12,7 +12,7 @@ import (
 	"os"
 	"time"
 
-	"test/util"
+	"dnsonchain/util"
 )
 
 /*

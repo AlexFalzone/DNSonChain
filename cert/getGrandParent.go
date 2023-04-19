@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"test/util"
+	"dnsonchain/util"
 )
 
 // GetGrandParent generates a new grandparent certificate and private key.
