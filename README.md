@@ -5,6 +5,7 @@
   - [Requirements](#requirements)
   - [Installation](#installation)
     - [Option 1: Manual Installation](#option-1-manual-installation)
+    - [Option 2: Automated Installation using the Script](#script-installation)
   - [Usage](#usage)
   - [Contributing](#contributing)
   - [License](#license)
@@ -93,7 +94,7 @@ sudo ./DNSonChain
 ```
 
 <a name="script-installation"></a>
-### Option 2: Automated Installation using the Script
+### Option 2: Automated Installation using the Script](#)
 
  The script will automatically detect your package manager, install dependencies, modify related files, build the project, and prompt you to run the application.
 
