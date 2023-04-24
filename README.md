@@ -6,6 +6,7 @@
   - [Installation](#installation)
     - [Option 1: Manual Installation](#option-1-manual-installation)
     - [Option 2: Automated Installation using the Script](#script-installation)
+  - [To-Do/Future Directions](#todo)
   - [Usage](#usage)
   - [Contributing](#contributing)
   - [License](#license)
@@ -94,7 +95,7 @@ sudo ./DNSonChain
 ```
 
 <a name="script-installation"></a>
-### Option 2: Automated Installation using the Script](#)
+### Option 2: Automated Installation using the Script
 
  The script will automatically detect your package manager, install dependencies, modify related files, build the project, and prompt you to run the application.
 
@@ -112,6 +113,12 @@ sudo ./DNSonChain
    ```
    ./scripLinux.sh
    ```
+<a name="todo"></a>
+## To-Do/Future Directions
+
+- In the future, DNS-On-Chain will not only handle ".chain" domains but also any domain. It will search the corresponding blockchain for the specific domain, and if it doesn't exist, it will revert the DNS request to an external DNS server. Additionally, a caching mechanism will be introduced for domain names. This way, if a domain name is present in the cache, the system will confidently make a request to the blockchain. If the domain name is not in the cache, the system will not even attempt a request.
+- A browser extension will also be released in the future.
+
 
 <a name="usage"></a>
 ## Usage
