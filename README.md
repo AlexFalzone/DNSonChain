@@ -33,7 +33,7 @@ The main components of the DNSonChain project are:
 
 - [Go](https://golang.org/doc/install) programming language (version 1.16 or later)
 - libnss3-tools (on linux, very often it is already installed. On Windows, you can download it from here: [certutil](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip) and the [.asc](https://dist.torproject.org/torbrowser/12.0.4/mar-tools-win64.zip.asc)
-- An Execution client should be sufficient for a light node. Otherwise you need a consensus client. (If your client uses port 8545, it is already supported)
+- An Execution client should be sufficient for a light node. Otherwise you will also need a consensus client. (If your client uses port 8545, it is already supported)
 
 <a name="installation"></a>
 ## Installation
@@ -116,6 +116,8 @@ sudo ./DNSonChain
 <a name="todo"></a>
 ## To-Do/Future Directions
 
+- A detailed description of the installation, for Windows
+- A setup script for Windows
 - In the future, DNS-On-Chain will not only handle ".chain" domains but also any domain. It will search the corresponding blockchain for the specific domain, and if it doesn't exist, it will revert the DNS request to an external DNS server. Additionally, a caching mechanism will be introduced for domain names. This way, if a domain name is present in the cache, the system will confidently make a request to the blockchain. If the domain name is not in the cache, the system will not even attempt a request.
 - A browser extension will also be released in the future.
 
