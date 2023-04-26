@@ -13,11 +13,6 @@ import (
 	"github.com/miekg/dns"
 )
 
-/*
-TO-DO:
--sistemare la funzione HandleRequest in maniera tale che non sia necessario stoppare il servizio DNS
-*/
-
 func main() {
 
 	var url string
