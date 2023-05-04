@@ -9,7 +9,6 @@
   - [To-Do/Future Directions](#todo)
   - [Usage](#usage)
   - [Contributing](#contributing)
-  - [License](#license)
   - [Contact](#contact)
 
 <a name="DNSonChain"></a>
@@ -131,11 +130,6 @@ There's a utility included that displays available entries, just run the program
 ## Contributing
 
 Please feel free to submit issues, fork the repository and send pull requests!
-
-<a name="license"></a>
-## License
-
-Currently there is no licence for the project.
 
 ## Contact
 
