@@ -12,19 +12,19 @@ import (
 func ConvertCertToDER(certFile string) ([]byte, error) {
 	pemData, err := os.ReadFile(certFile)
 	if err != nil {
-		fmt.Printf("Impossibile leggere il file del certificato PEM: %v\n", err)
+		fmt.Printf("Unable to read PEM certificate file: %v\n", err)
 		return nil, err
 	}
 
 	// Decode the PEM data
 	block, _ := pem.Decode(pemData)
 	if block == nil {
-		fmt.Println("Impossibile decodificare il certificato PEM")
+		fmt.Println("Unable to decrypt PEM certificate")
 		return nil, err
 	}
 
 	if block.Type != "CERTIFICATE" {
-		fmt.Printf("Il blocco PEM non contiene un certificato: %v\n", err)
+		fmt.Printf("PEM block does not contain a certificate: %v\n", err)
 		return nil, err
 	}
 

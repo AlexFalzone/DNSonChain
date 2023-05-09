@@ -30,7 +30,7 @@ func DisplayCertificatesMenu() int {
 }
 
 func GetInfuraOrLocalhost() string {
-	fmt.Println("Vuoi usare Infura o il tuo localhost?")
+	fmt.Println("Do you want to use Infura or your localhost?")
 	fmt.Println("1. Infura")
 	fmt.Println("2. Localhost")
 
