@@ -5,8 +5,7 @@
   - [Requirements](#requirements)
   - [Installation](#installation)
     - [Option 1: Manual Installation](#option-1-manual-installation)
-    - [Option 2: Automated Installation using the Script](#script-installation)
-  - [To-Do/Future Directions](#todo)
+  - [To-Do/Future Directions](#to-dofuture-directions)
   - [Usage](#usage)
   - [Contributing](#contributing)
   - [Contact](#contact)
@@ -77,18 +76,18 @@ cd DNSonChain
   sudo service dnsmasq restart
   ```
   
-1. Initialize the Go module and install dependencies
+4. Initialize the Go module and install dependencies
 ```
 go mod init test
 go mod tidy
 ```
 
-1. Build the project
+5. Build the project
 ```
 go build -o DNSonChain main.go
 ```
 
-1. Run the application
+6. Run the application
 ```
 sudo ./DNSonChain
 ```
