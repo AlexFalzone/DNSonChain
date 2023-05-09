@@ -21,9 +21,9 @@ import (
 //
 // Returns:
 //   - x509.Certificate: The generated parent certificate.
-//   - any: The generated private key.
+//   - interface{}: The generated private key.
 //   - error: An error, if any occurs during the certificate and private key generation.
-func GetParent(name string) (x509.Certificate, any) {
+func GetParent(name string) (x509.Certificate, interface{}) {
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
 		log.Fatal(err)

@@ -32,9 +32,9 @@ const (
 //
 // Returns:
 //   - []byte: The generated certificate in bytes.
-//   - any: The generated private key.
+//   - interface{}: The generated private key.
 //   - error: An error, if any occurs during the certificate and private key generation.
-func GenerateCert(name string /*choice int*/) ([]byte, any, error) {
+func GenerateCert(name string /*choice int*/) ([]byte, interface{}, error) {
 
 	priv, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	if err != nil {
