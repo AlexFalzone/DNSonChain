@@ -114,7 +114,7 @@ sudo ./DNSonChain
 <a name="todo"></a>
 ## To-Do/Future Directions
 
-- Full support to IPv6
+- ~Full support to IPv6~
 - A detailed description of the installation, for Windows
 - A setup script for Windows
 - In the future, DNS-On-Chain will not only handle ".chain" domains but also any domain. It will search the corresponding blockchain for the specific domain, and if it doesn't exist, it will revert the DNS request to an external DNS server. Additionally, a caching mechanism will be introduced for domain names. This way, if a domain name is present in the cache, the system will confidently make a request to the blockchain. If the domain name is not in the cache, the system will not even attempt a request.
